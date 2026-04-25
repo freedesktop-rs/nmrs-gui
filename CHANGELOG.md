@@ -92,14 +92,14 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 ### Documentation
 - Initial README with installation and usage instructions
 
-[1.5.0]: https://github.com/cachebag/nmrs/compare/gui-v1.1.0...gui-v1.5.0
-[1.5.1]: https://github.com/cachebag/nmrs/compare/gui-v1.5.0...gui-v1.5.1
-[Unreleased]: https://github.com/cachebag/nmrs/compare/gui-v1.5.1...HEAD
-[1.1.0]: https://github.com/cachebag/nmrs/compare/gui-v0.5.0-beta...gui-v1.1.0
-[0.5.0-beta]: https://github.com/cachebag/nmrs/compare/v0.4.0-beta...gui-v0.5.0-beta
-[0.4.0-beta]: https://github.com/cachebag/nmrs/compare/v0.3.0-beta...v0.4.0-beta
-[0.3.0-beta]: https://github.com/cachebag/nmrs/compare/v0.2.0-beta...v0.3.0-beta
-[0.2.0-beta]: https://github.com/cachebag/nmrs/compare/v0.1.1-beta...v0.2.0-beta
-[0.1.1-beta]: https://github.com/cachebag/nmrs/compare/v0.1.0-beta...v0.1.1-beta
-[0.1.0-beta]: https://github.com/cachebag/nmrs/releases/tag/v0.1.0-beta
+[1.5.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.1.0...v1.5.0
+[1.5.1]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.0...v1.5.1
+[Unreleased]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.1...HEAD
+[1.1.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.5.0-beta...v1.1.0
+[0.5.0-beta]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.4.0-beta...v0.5.0-beta
+[0.4.0-beta]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.3.0-beta...v0.4.0-beta
+[0.3.0-beta]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.2.0-beta...v0.3.0-beta
+[0.2.0-beta]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.1.1-beta...v0.2.0-beta
+[0.1.1-beta]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.1.0-beta...v0.1.1-beta
+[0.1.0-beta]: https://github.com/networkmanager-rs/nmrs-gui/releases/tag/v0.1.0-beta
 

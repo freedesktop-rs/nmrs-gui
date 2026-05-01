@@ -1,4 +1,4 @@
-# nmrs-gui
+# <p align="center"> nmrs-gui 🦀 
 
 A GTK4 GUI for managing NetworkManager connections on Linux. Built with Rust and libadwaita.
 

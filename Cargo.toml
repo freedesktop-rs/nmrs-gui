@@ -15,7 +15,7 @@ type_complexity = "allow"
 
 [workspace.dependencies]
 nmrs = "3.0"
-gtk = { version = "0.10.3", package = "gtk4" }
+gtk = { version = "0.11.0", package = "gtk4" }
 glib = "0.21"
 dirs = "6.0.0"
 fs2 = "0.4.3"

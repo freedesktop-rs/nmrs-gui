@@ -1,6 +1,6 @@
 [package]
 name = "nmrs-gui"
-version = "1.5.1"
+version = "1.6.0"
 authors = ["Akrm Al-Hakimi <alhakimiakrmj@gmail.com>"]
 edition = "2024"
 rust-version = "1.85.0"

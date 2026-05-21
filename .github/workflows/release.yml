@@ -41,10 +41,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Build release binary
+        env:
+          # fat LTO is memory-heavy; serialize codegen to avoid OOM on CI runners
+          CARGO_BUILD_JOBS: 1
         run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Strip binary
-        run: strip target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}
 
       - name: Rename artifact
         run: |

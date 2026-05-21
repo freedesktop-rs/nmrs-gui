@@ -23,20 +23,28 @@ pub struct NetworksContext {
     pub nm: Rc<NetworkManager>,
     pub on_success: Rc<dyn Fn()>,
     pub status: Label,
+    pub conn_icon: Image,
+    pub conn_name: Label,
+    pub scan_spinner: gtk::Spinner,
     pub stack: gtk::Stack,
     pub parent_window: gtk::ApplicationWindow,
     pub details_page: Rc<NetworkPage>,
     pub wired_details_page: Rc<crate::ui::wired_page::WiredPage>,
+    pub vpn_details_page: Rc<crate::ui::vpn_details_page::VpnDetailsPage>,
 }
 
 impl NetworksContext {
     pub async fn new(
         on_success: Rc<dyn Fn()>,
         status: &Label,
+        conn_icon: &Image,
+        conn_name: &Label,
+        scan_spinner: &gtk::Spinner,
         stack: &gtk::Stack,
         parent_window: &gtk::ApplicationWindow,
         details_page: Rc<NetworkPage>,
         wired_details_page: Rc<crate::ui::wired_page::WiredPage>,
+        vpn_details_page: Rc<crate::ui::vpn_details_page::VpnDetailsPage>,
     ) -> Result<Self> {
         let nm = Rc::new(NetworkManager::new().await?);
 
@@ -44,10 +52,14 @@ impl NetworksContext {
             nm,
             on_success,
             status: status.clone(),
+            conn_icon: conn_icon.clone(),
+            conn_name: conn_name.clone(),
+            scan_spinner: scan_spinner.clone(),
             stack: stack.clone(),
             parent_window: parent_window.clone(),
             details_page,
             wired_details_page,
+            vpn_details_page,
         })
     }
 }

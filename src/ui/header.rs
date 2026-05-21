@@ -10,6 +10,7 @@ use nmrs::models;
 
 use crate::ui::networks;
 use crate::ui::networks::NetworksContext;
+use crate::ui::vpn_list;
 use crate::ui::wired_devices;
 
 pub struct ThemeDef {
@@ -56,10 +57,42 @@ pub fn build_header(
 
     let list_container = list_container.clone();
 
-    // Left side: status label
-    ctx.status.set_hexpand(true);
+    // Left side: connection status (icon + name) and status label
+    let left_box = GtkBox::new(Orientation::Horizontal, 8);
+    left_box.set_halign(Align::Start);
+
+    ctx.conn_icon.set_valign(Align::Center);
+    left_box.append(&ctx.conn_icon);
+
+    ctx.conn_name.set_valign(Align::Center);
+    left_box.append(&ctx.conn_name);
+
+    let separator = Label::new(Some("·"));
+    separator.add_css_class("conn-status-separator");
+    separator.set_valign(Align::Center);
+    separator.set_visible(false);
+
+    ctx.status.set_valign(Align::Center);
     ctx.status.set_halign(Align::Start);
-    header.pack_start(&ctx.status);
+
+    // Show separator only when status has text
+    {
+        let sep = separator.clone();
+        ctx.status
+            .connect_notify_local(Some("label"), move |label, _| {
+                let has_text = !label.text().is_empty();
+                sep.set_visible(has_text);
+            });
+    }
+
+    left_box.append(&separator);
+    left_box.append(&ctx.status);
+
+    ctx.scan_spinner.set_valign(Align::Center);
+    left_box.append(&ctx.scan_spinner);
+
+    left_box.set_hexpand(true);
+    header.pack_start(&left_box);
 
     // Right side: settings gear
     let settings_btn = gtk::Button::from_icon_name("emblem-system-symbolic");
@@ -126,6 +159,7 @@ pub fn build_header(
 
             apply_airplane_icon(&airplane_btn, &ctx).await;
             apply_connectivity_status(&ctx).await;
+            apply_connection_status(&ctx).await;
 
             match ctx.nm.wifi_state().await.map(|s| s.enabled) {
                 Ok(enabled) => {
@@ -261,6 +295,47 @@ async fn apply_connectivity_status(ctx: &NetworksContext) {
     }
 }
 
+async fn apply_connection_status(ctx: &NetworksContext) {
+    // Check for active VPN first (takes priority in display)
+    if let Ok(vpns) = ctx.nm.list_vpn_connections().await {
+        for vpn in &vpns {
+            if vpn.active {
+                ctx.conn_icon.set_icon_name(Some("network-vpn-symbolic"));
+                ctx.conn_name.set_text(&vpn.name);
+                return;
+            }
+        }
+    }
+
+    // Check for active wired connection
+    if let Ok(wired_devices) = ctx.nm.list_wired_devices().await {
+        for dev in &wired_devices {
+            if dev.state == models::DeviceState::Activated {
+                ctx.conn_icon.set_icon_name(Some("network-wired-symbolic"));
+                ctx.conn_name.set_text(&dev.interface);
+                return;
+            }
+        }
+    }
+
+    // Check for active Wi-Fi connection
+    if let Some((ssid, freq)) = ctx.nm.current_connection_info().await {
+        ctx.conn_icon
+            .set_icon_name(Some("network-wireless-symbolic"));
+        let display = match freq.and_then(crate::ui::freq_to_band) {
+            Some(band) => format!("{} ({})", ssid, band),
+            None => ssid,
+        };
+        ctx.conn_name.set_text(&display);
+        return;
+    }
+
+    // No active connection
+    ctx.conn_icon
+        .set_icon_name(Some("network-offline-symbolic"));
+    ctx.conn_name.set_text("Disconnected");
+}
+
 fn connectivity_label(state: &ConnectivityState, portal_url: Option<&str>) -> String {
     match state {
         ConnectivityState::Full => String::new(),
@@ -281,13 +356,13 @@ pub async fn refresh_networks(
     is_scanning: &Rc<Cell<bool>>,
 ) {
     if is_scanning.get() {
-        ctx.status.set_text("Scan already in progress");
         return;
     }
     is_scanning.set(true);
 
     clear_children(list_container);
-    ctx.status.set_text("Scanning...");
+    ctx.scan_spinner.set_visible(true);
+    ctx.scan_spinner.start();
 
     // Fetch wired devices first
     match ctx.nm.list_wired_devices().await {
@@ -361,6 +436,8 @@ pub async fn refresh_networks(
 
     if let Err(err) = ctx.nm.scan_networks(None).await {
         ctx.status.set_text(&format!("Scan failed: {err}"));
+        ctx.scan_spinner.stop();
+        ctx.scan_spinner.set_visible(false);
         is_scanning.set(false);
         return;
     }
@@ -416,8 +493,22 @@ pub async fn refresh_networks(
             .set_text(&format!("Error fetching networks: {err}")),
     }
 
-    apply_connectivity_status(&ctx).await;
+    // VPN section
+    if let Ok(vpns) = ctx.nm.list_vpn_connections().await {
+        vpn_list::vpn_section(
+            ctx.clone(),
+            &vpns,
+            ctx.vpn_details_page.clone(),
+            list_container,
+        );
+    }
+    vpn_list::vpn_add_button(&ctx, list_container);
 
+    apply_connectivity_status(&ctx).await;
+    apply_connection_status(&ctx).await;
+
+    ctx.scan_spinner.stop();
+    ctx.scan_spinner.set_visible(false);
     is_scanning.set(false);
 }
 
@@ -546,7 +637,19 @@ pub async fn refresh_networks_no_scan(
         }
     }
 
+    // VPN section
+    if let Ok(vpns) = ctx.nm.list_vpn_connections().await {
+        vpn_list::vpn_section(
+            ctx.clone(),
+            &vpns,
+            ctx.vpn_details_page.clone(),
+            list_container,
+        );
+    }
+    vpn_list::vpn_add_button(&ctx, list_container);
+
     apply_connectivity_status(&ctx).await;
+    apply_connection_status(&ctx).await;
 
     is_scanning.set(false);
 }

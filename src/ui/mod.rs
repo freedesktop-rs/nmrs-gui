@@ -3,13 +3,16 @@ pub mod header;
 pub mod network_page;
 pub mod networks;
 pub mod settings_page;
+pub mod vpn_add_page;
+pub mod vpn_details_page;
+pub mod vpn_list;
 pub mod wired_devices;
 pub mod wired_page;
 
 use gtk::prelude::*;
 use gtk::{
-    Application, ApplicationWindow, Box as GtkBox, Label, Orientation, ScrolledWindow, Spinner,
-    Stack, pango::EllipsizeMode,
+    Application, ApplicationWindow, Box as GtkBox, Image, Label, Orientation, ScrolledWindow,
+    Spinner, Stack, pango::EllipsizeMode,
 };
 use std::cell::Cell;
 use std::rc::Rc;
@@ -31,7 +34,7 @@ pub fn freq_to_band(freq: u32) -> Option<&'static str> {
 pub fn build_ui(app: &Application) {
     let win = ApplicationWindow::new(app);
     win.set_title(Some(""));
-    win.set_default_size(100, 600);
+    win.set_default_size(450, 600);
     win.add_css_class("dark-theme");
 
     let vbox = GtkBox::new(Orientation::Vertical, 0);
@@ -39,6 +42,20 @@ pub fn build_ui(app: &Application) {
     status.set_xalign(0.0);
     status.set_ellipsize(EllipsizeMode::End);
     status.set_max_width_chars(36);
+
+    let conn_icon = Image::from_icon_name("network-offline-symbolic");
+    conn_icon.add_css_class("conn-status-icon");
+
+    let conn_name = Label::new(Some("Disconnected"));
+    conn_name.set_ellipsize(EllipsizeMode::End);
+    conn_name.set_max_width_chars(20);
+    conn_name.add_css_class("conn-status-name");
+
+    let scan_spinner = Spinner::new();
+    scan_spinner.set_size_request(14, 14);
+    scan_spinner.add_css_class("scan-spinner");
+    scan_spinner.set_visible(false);
+
     let list_container = GtkBox::new(Orientation::Vertical, 0);
     let stack = Stack::new();
     let is_scanning = Rc::new(Cell::new(false));
@@ -79,21 +96,41 @@ pub fn build_ui(app: &Application) {
                 wired_details_scroller.set_child(Some(wired_details_page.widget()));
                 stack_clone.add_named(&wired_details_scroller, Some("wired-details"));
 
+                let vpn_details_page = Rc::new(vpn_details_page::VpnDetailsPage::new(&stack_clone));
+                let vpn_details_scroller = ScrolledWindow::new();
+                vpn_details_scroller.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
+                vpn_details_scroller.set_child(Some(vpn_details_page.widget()));
+                stack_clone.add_named(&vpn_details_scroller, Some("vpn-details"));
+
+                let vpn_add = vpn_add_page::VpnAddPage::new(&stack_clone, &win_clone);
+                let vpn_add_scroller = ScrolledWindow::new();
+                vpn_add_scroller.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
+                vpn_add_scroller.set_child(Some(vpn_add.widget()));
+                stack_clone.add_named(&vpn_add_scroller, Some("vpn-add"));
+
                 let settings = settings_page::SettingsPage::new(&stack_clone, &win_clone);
                 let settings_scroller = ScrolledWindow::new();
                 settings_scroller.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
                 settings_scroller.set_child(Some(settings.widget()));
                 stack_clone.add_named(&settings_scroller, Some("settings"));
 
+                let conn_icon_clone = conn_icon.clone();
+                let conn_name_clone = conn_name.clone();
+                let scan_spinner_clone = scan_spinner.clone();
+
                 let on_success: Rc<dyn Fn()> = {
                     let list_container = list_container_clone.clone();
                     let is_scanning = is_scanning_clone.clone();
                     let nm = nm.clone();
                     let status = status_clone.clone();
+                    let conn_icon = conn_icon_clone.clone();
+                    let conn_name = conn_name_clone.clone();
+                    let scan_spinner = scan_spinner_clone.clone();
                     let stack = stack_clone.clone();
                     let parent_window = win_clone.clone();
                     let details_page = details_page.clone();
                     let wired_details_page = wired_details_page.clone();
+                    let vpn_details_page = vpn_details_page.clone();
 
                     let on_success_cell: CallbackCell = Rc::new(std::cell::RefCell::new(None));
                     let on_success_cell_clone = on_success_cell.clone();
@@ -103,11 +140,15 @@ pub fn build_ui(app: &Application) {
                         let is_scanning = is_scanning.clone();
                         let nm = nm.clone();
                         let status = status.clone();
+                        let conn_icon = conn_icon.clone();
+                        let conn_name = conn_name.clone();
+                        let scan_spinner = scan_spinner.clone();
                         let stack = stack.clone();
                         let parent_window = parent_window.clone();
                         let on_success_cell = on_success_cell.clone();
                         let details_page = details_page.clone();
                         let wired_details_page = wired_details_page.clone();
+                        let vpn_details_page = vpn_details_page.clone();
 
                         glib::MainContext::default().spawn_local(async move {
                             let callback = on_success_cell.borrow().as_ref().map(|cb| cb.clone());
@@ -115,10 +156,14 @@ pub fn build_ui(app: &Application) {
                                 nm,
                                 on_success: callback.unwrap_or_else(|| Rc::new(|| {})),
                                 status,
+                                conn_icon,
+                                conn_name,
+                                scan_spinner,
                                 stack,
                                 parent_window,
                                 details_page: details_page.clone(),
                                 wired_details_page: wired_details_page.clone(),
+                                vpn_details_page: vpn_details_page.clone(),
                             });
                             header::refresh_networks(refresh_ctx, &list_container, &is_scanning)
                                 .await;
@@ -134,13 +179,19 @@ pub fn build_ui(app: &Application) {
                     nm: nm.clone(),
                     on_success: on_success.clone(),
                     status: status_clone.clone(),
+                    conn_icon: conn_icon_clone.clone(),
+                    conn_name: conn_name_clone.clone(),
+                    scan_spinner: scan_spinner_clone.clone(),
                     stack: stack_clone.clone(),
                     parent_window: win_clone.clone(),
                     details_page: details_page.clone(),
                     wired_details_page,
+                    vpn_details_page: vpn_details_page.clone(),
                 });
 
-                details_page.set_on_success(on_success);
+                details_page.set_on_success(on_success.clone());
+                vpn_details_page.set_on_success(on_success.clone());
+                vpn_add.set_on_success(on_success);
 
                 let header = header::build_header(
                     ctx.clone(),

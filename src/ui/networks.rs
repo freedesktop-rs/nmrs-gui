@@ -27,6 +27,7 @@ pub struct NetworksContext {
     pub parent_window: gtk::ApplicationWindow,
     pub details_page: Rc<NetworkPage>,
     pub wired_details_page: Rc<crate::ui::wired_page::WiredPage>,
+    pub vpn_details_page: Rc<crate::ui::vpn_details_page::VpnDetailsPage>,
 }
 
 impl NetworksContext {
@@ -37,6 +38,7 @@ impl NetworksContext {
         parent_window: &gtk::ApplicationWindow,
         details_page: Rc<NetworkPage>,
         wired_details_page: Rc<crate::ui::wired_page::WiredPage>,
+        vpn_details_page: Rc<crate::ui::vpn_details_page::VpnDetailsPage>,
     ) -> Result<Self> {
         let nm = Rc::new(NetworkManager::new().await?);
 
@@ -48,6 +50,7 @@ impl NetworksContext {
             parent_window: parent_window.clone(),
             details_page,
             wired_details_page,
+            vpn_details_page,
         })
     }
 }

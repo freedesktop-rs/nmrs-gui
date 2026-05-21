@@ -35,6 +35,14 @@ window {
   color: var(--text-primary);
 }
 
+/* Global pointer cursor for interactive elements */
+button,
+switch,
+.network-selection,
+.vpn-add-row {
+  cursor: pointer;
+}
+
 /* Header */
 headerbar {
   background: var(--bg-secondary);
@@ -310,5 +318,119 @@ popover row label {
 .device-separator {
   background: var(--border-color);
   opacity: 0.5;
+}
+
+/* VPN styles */
+.vpn-section-header {
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.8px;
+  opacity: 0.8;
+}
+
+.vpn-list {
+  background: var(--bg-primary);
+  margin-bottom: 4px;
+}
+
+.vpn-type-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+.vpn-icon {
+  color: var(--accent-color);
+  opacity: 0.8;
+  margin-left: 6px;
+}
+
+.vpn-add-row {
+  opacity: 0.7;
+}
+.vpn-add-row:hover {
+  opacity: 1;
+}
+
+.vpn-add-icon {
+  color: var(--accent-color);
+  opacity: 0.8;
+}
+
+.vpn-add-label {
+  color: var(--text-secondary);
+}
+
+.vpn-action-btn {
+  padding: 6px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.vpn-connect-btn {
+  background: var(--accent-color);
+  color: white;
+  padding: 6px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.vpn-connect-btn:hover {
+  opacity: 0.9;
+}
+
+.vpn-disconnect-btn {
+  background: var(--error-color);
+  color: white;
+  padding: 6px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.vpn-disconnect-btn:hover {
+  opacity: 0.9;
+}
+
+.vpn-entry {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+.vpn-entry:focus {
+  border-color: var(--accent-color);
+}
+
+.vpn-tab-btn {
+  padding: 4px 14px;
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.vpn-tab-btn:hover {
+  background: var(--border-color-hover);
+}
+.vpn-tab-active {
+  background: var(--accent-color);
+  color: white;
+}
+
+.vpn-browse-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-radius: 4px;
+  padding: 4px 12px;
+}
+.vpn-browse-btn:hover {
+  background: var(--border-color-hover);
+}
+
+.vpn-status-label {
+  color: var(--text-secondary);
+  font-size: 13px;
 }
 

@@ -10,6 +10,7 @@ use nmrs::models;
 
 use crate::ui::networks;
 use crate::ui::networks::NetworksContext;
+use crate::ui::vpn_list;
 use crate::ui::wired_devices;
 
 pub struct ThemeDef {
@@ -416,6 +417,17 @@ pub async fn refresh_networks(
             .set_text(&format!("Error fetching networks: {err}")),
     }
 
+    // VPN section
+    if let Ok(vpns) = ctx.nm.list_vpn_connections().await {
+        vpn_list::vpn_section(
+            ctx.clone(),
+            &vpns,
+            ctx.vpn_details_page.clone(),
+            list_container,
+        );
+    }
+    vpn_list::vpn_add_button(&ctx, list_container);
+
     apply_connectivity_status(&ctx).await;
 
     is_scanning.set(false);
@@ -545,6 +557,17 @@ pub async fn refresh_networks_no_scan(
                 .set_text(&format!("Error fetching networks: {err}"));
         }
     }
+
+    // VPN section
+    if let Ok(vpns) = ctx.nm.list_vpn_connections().await {
+        vpn_list::vpn_section(
+            ctx.clone(),
+            &vpns,
+            ctx.vpn_details_page.clone(),
+            list_container,
+        );
+    }
+    vpn_list::vpn_add_button(&ctx, list_container);
 
     apply_connectivity_status(&ctx).await;
 

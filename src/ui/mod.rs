@@ -3,6 +3,9 @@ pub mod header;
 pub mod network_page;
 pub mod networks;
 pub mod settings_page;
+pub mod vpn_add_page;
+pub mod vpn_details_page;
+pub mod vpn_list;
 pub mod wired_devices;
 pub mod wired_page;
 
@@ -79,6 +82,18 @@ pub fn build_ui(app: &Application) {
                 wired_details_scroller.set_child(Some(wired_details_page.widget()));
                 stack_clone.add_named(&wired_details_scroller, Some("wired-details"));
 
+                let vpn_details_page = Rc::new(vpn_details_page::VpnDetailsPage::new(&stack_clone));
+                let vpn_details_scroller = ScrolledWindow::new();
+                vpn_details_scroller.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
+                vpn_details_scroller.set_child(Some(vpn_details_page.widget()));
+                stack_clone.add_named(&vpn_details_scroller, Some("vpn-details"));
+
+                let vpn_add = vpn_add_page::VpnAddPage::new(&stack_clone, &win_clone);
+                let vpn_add_scroller = ScrolledWindow::new();
+                vpn_add_scroller.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
+                vpn_add_scroller.set_child(Some(vpn_add.widget()));
+                stack_clone.add_named(&vpn_add_scroller, Some("vpn-add"));
+
                 let settings = settings_page::SettingsPage::new(&stack_clone, &win_clone);
                 let settings_scroller = ScrolledWindow::new();
                 settings_scroller.set_policy(gtk::PolicyType::Never, gtk::PolicyType::Automatic);
@@ -94,6 +109,7 @@ pub fn build_ui(app: &Application) {
                     let parent_window = win_clone.clone();
                     let details_page = details_page.clone();
                     let wired_details_page = wired_details_page.clone();
+                    let vpn_details_page = vpn_details_page.clone();
 
                     let on_success_cell: CallbackCell = Rc::new(std::cell::RefCell::new(None));
                     let on_success_cell_clone = on_success_cell.clone();
@@ -108,6 +124,7 @@ pub fn build_ui(app: &Application) {
                         let on_success_cell = on_success_cell.clone();
                         let details_page = details_page.clone();
                         let wired_details_page = wired_details_page.clone();
+                        let vpn_details_page = vpn_details_page.clone();
 
                         glib::MainContext::default().spawn_local(async move {
                             let callback = on_success_cell.borrow().as_ref().map(|cb| cb.clone());
@@ -119,6 +136,7 @@ pub fn build_ui(app: &Application) {
                                 parent_window,
                                 details_page: details_page.clone(),
                                 wired_details_page: wired_details_page.clone(),
+                                vpn_details_page: vpn_details_page.clone(),
                             });
                             header::refresh_networks(refresh_ctx, &list_container, &is_scanning)
                                 .await;
@@ -138,9 +156,12 @@ pub fn build_ui(app: &Application) {
                     parent_window: win_clone.clone(),
                     details_page: details_page.clone(),
                     wired_details_page,
+                    vpn_details_page: vpn_details_page.clone(),
                 });
 
-                details_page.set_on_success(on_success);
+                details_page.set_on_success(on_success.clone());
+                vpn_details_page.set_on_success(on_success.clone());
+                vpn_add.set_on_success(on_success);
 
                 let header = header::build_header(
                     ctx.clone(),

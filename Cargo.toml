@@ -19,7 +19,7 @@ too_many_arguments = "allow"
 type_complexity = "allow"
 
 [dependencies]
-nmrs = { path = "/home/cachebag/personal/nmrs/nmrs" }
+nmrs = "3.1.5"
 gtk = { version = "0.11.0", package = "gtk4" }
 glib = "0.22"
 dirs = "6.0.0"

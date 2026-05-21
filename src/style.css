@@ -50,6 +50,27 @@ headerbar {
   border-bottom: 1px solid var(--border-color);
 }
 
+/* Connection status in header */
+.conn-status-icon {
+  color: var(--text-secondary);
+  min-width: 16px;
+  min-height: 16px;
+}
+.conn-status-name {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.95em;
+}
+.conn-status-separator {
+  color: var(--text-tertiary);
+  margin: 0 2px;
+}
+.scan-spinner {
+  color: var(--text-secondary);
+  min-width: 14px;
+  min-height: 14px;
+}
+
 /* Switch */
 switch {
   background-color: var(--bg-tertiary);

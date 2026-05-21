@@ -1,4 +1,4 @@
-# <p align="center"> nmrs-gui 🦀 
+# <p align="center"> nmrs 🦀
 
 A GTK4 GUI for managing NetworkManager connections on Linux. Built with Rust and libadwaita.
 
@@ -13,26 +13,24 @@ A GTK4 GUI for managing NetworkManager connections on Linux. Built with Rust and
   <img src="https://github.com/user-attachments/assets/84d6ca5e-4e65-4d91-ae59-c86d5e1d825a" width="300" height="300" />
 </p>
 
-
 ## Features
 
-- Full fledged, first class VPN support for OpenVPN and Wireguard
+- Full VPN support for OpenVPN and WireGuard
 - Connect to, disconnect from, and forget Wi-Fi networks
 - Full Ethernet device support
 - WPA-Enterprise (EAP) connections with certificate path support
 - Pre-defined themes: Catppuccin, Dracula, Gruvbox, Nord, Tokyo Night
 - Custom CSS theming via `~/.config/nmrs/style.css`
 - System light/dark mode toggle
-- System tray compatible status output
 
 ## Installation
 
 ### Arch Linux (AUR)
 
 ```bash
-yay -S nmrs-gui
+yay -S nmrs
 # or
-paru -S nmrs-gui
+paru -S nmrs
 ```
 
 ### From crates.io
@@ -48,6 +46,8 @@ cargo install nmrs-gui
 cargo install --path .
 ```
 
+Both install the `nmrs` binary.
+
 ### Nix / NixOS
 
 ```bash
@@ -59,10 +59,10 @@ Or add to your flake inputs and use `packages.${system}.default`.
 ## Usage
 
 ```bash
-nmrs-gui [OPTIONS]
+nmrs [OPTIONS]
 
 Options:
-  -v, --version    Print version and build hash
+  -V, --version    Print version and build hash
   -h, --help       Print help
 ```
 
@@ -80,18 +80,6 @@ window {
 ```
 
 Choose a built-in theme from the Settings page inside the app.
-
-## Waybar Integration
-
-```json
-{
-  "custom/nmrs": {
-    "exec": "nmrs-gui --status",
-    "interval": 5,
-    "format": "  {}"
-  }
-}
-```
 
 ## License
 

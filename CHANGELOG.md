@@ -3,7 +3,12 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+### Added
+- VPN management: list, connect, disconnect, and add WireGuard and OpenVPN profiles ([#21](https://github.com/networkmanager-rs/nmrs-gui/pull/21))
+
 ### Changed
+- Header shows a connection-type icon and active network name (VPN, wired, Wi‑Fi, or disconnected) ([#21](https://github.com/networkmanager-rs/nmrs-gui/pull/21))
+- Network scan progress uses a header spinner instead of "Scanning..." text ([#21](https://github.com/networkmanager-rs/nmrs-gui/pull/21))
 - Use `Arc<Notify>` for monitor callbacks to satisfy `Send` bound ([#359](https://github.com/cachebag/nmrs/pull/359))
 
 ## [1.5.1] - 2026-04-10

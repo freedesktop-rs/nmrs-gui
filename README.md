@@ -5,16 +5,25 @@ A GTK4 GUI for managing NetworkManager connections on Linux. Built with Rust and
 [![CI](https://github.com/networkmanager-rs/nmrs-gui/actions/workflows/ci.yml/badge.svg)](https://github.com/networkmanager-rs/nmrs-gui/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/nmrs-gui)](https://crates.io/crates/nmrs-gui)
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/472308a0-f902-41a1-a6d0-66bffb7793f8" width="300" height="300" />
+
+  <img src="https://github.com/user-attachments/assets/d495e4a1-d505-4e0a-80ce-edaf8a67b739" width="300" height="300" />
+
+  <img src="https://github.com/user-attachments/assets/84d6ca5e-4e65-4d91-ae59-c86d5e1d825a" width="300" height="300" />
+</p>
+
+
 ## Features
 
+- Full fledged, first class VPN support for OpenVPN and Wireguard
 - Connect to, disconnect from, and forget Wi-Fi networks
 - Full Ethernet device support
 - WPA-Enterprise (EAP) connections with certificate path support
 - Pre-defined themes: Catppuccin, Dracula, Gruvbox, Nord, Tokyo Night
 - Custom CSS theming via `~/.config/nmrs/style.css`
 - System light/dark mode toggle
-- Waybar-compatible status output
-- Single-instance enforcement via file lock
+- System tray compatible status output
 
 ## Installation
 

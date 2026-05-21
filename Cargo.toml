@@ -11,6 +11,14 @@ keywords = ["networkmanager", "gui", "gtk", "linux"]
 categories = ["gui"]
 publish = true
 
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+incremental = false
+panic = "abort"
+strip = true
+
 [lints.rust]
 unused = { level = "warn", priority = -1 }
 

@@ -969,7 +969,9 @@ dependencies = [
 
 [[package]]
 name = "nmrs"
-version = "3.1.4"
+version = "3.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d907d6da103106d84189d3fd229d9aac921f9131b8ba38b40341c53d24409077"
 dependencies = [
  "async-trait",
  "base64",

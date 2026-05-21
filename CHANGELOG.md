@@ -3,6 +3,8 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+
+## [1.6.0] - 2026-05-20
 ### Added
 - VPN management: list, connect, disconnect, and add WireGuard and OpenVPN profiles ([#21](https://github.com/networkmanager-rs/nmrs-gui/pull/21))
 

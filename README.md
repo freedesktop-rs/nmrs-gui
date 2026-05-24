@@ -48,14 +48,6 @@ cargo install --path .
 
 Both install the `nmrs` binary.
 
-### Nix / NixOS
-
-```bash
-nix run github:networkmanager-rs/nmrs-gui
-```
-
-Or add to your flake inputs and use `packages.${system}.default`.
-
 ## Usage
 
 ```bash

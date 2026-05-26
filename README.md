@@ -46,12 +46,35 @@ cargo install nmrs-gui
 cargo install --path .
 ```
 
-Both install the `nmrs` binary.
+### Nix
+
+#### From source
+
+`nix run`
+
+#### Add to your system flake
+
+```nix
+# In flake.nix
+
+inputs = {
+  nmrs = {
+    url = "github:networkmanager-rs/nmrs-gui";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+}
+
+# In your packages list
+
+packages = [
+  inputs.nmrs.packages.${pkgs.stdenv.hostPlatform.system}.default
+];
+```
 
 ## Usage
 
 ```bash
-nmrs [OPTIONS]
+nmrs-gui [OPTIONS]
 
 Options:
   -V, --version    Print version and build hash

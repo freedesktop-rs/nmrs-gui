@@ -969,9 +969,9 @@ dependencies = [
 
 [[package]]
 name = "nmrs"
-version = "3.2.1"
+version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b13662446e8a7321513ab63edef47899024ae7828188905cf5f7fed73cee3752"
+checksum = "133ab12d9167f6b8d7cdadd4f8fde378bcaff4ad1c893d887498a98de50e10e9"
 dependencies = [
  "async-trait",
  "base64",
@@ -1498,9 +1498,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.23.3"
+version = "1.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "144d6b123cef80b301b8f72a9e2ca4370ddec21950d0a103dd22c437006d2db7"
+checksum = "bf80a72845275afea99e7f2b434723d3bc7e38470fcd1c7ed39a599c73319a53"
 dependencies = [
  "getrandom 0.4.2",
  "js-sys",

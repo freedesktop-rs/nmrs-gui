@@ -161,11 +161,16 @@ pub fn build_header(
             apply_connectivity_status(&ctx).await;
             apply_connection_status(&ctx).await;
 
-            match ctx.nm.wifi_state().await.map(|s| s.enabled) {
-                Ok(enabled) => {
-                    wifi_switch.set_active(enabled);
-                    if enabled {
+            match ctx.nm.wifi_state().await {
+                Ok(state) => {
+                    wifi_switch.set_visible(state.present);
+                    if state.present {
+                        wifi_switch.set_active(state.enabled);
+                    }
+                    if state.present && state.enabled {
                         refresh_networks(ctx, &list_container, &is_scanning).await;
+                    } else {
+                        refresh_networks_no_scan(ctx, &list_container, &is_scanning).await;
                     }
                 }
                 Err(err) => {

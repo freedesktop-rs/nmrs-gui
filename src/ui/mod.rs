@@ -22,6 +22,51 @@ use tokio::sync::Notify;
 type Callback = Rc<dyn Fn()>;
 type CallbackCell = Rc<std::cell::RefCell<Option<Callback>>>;
 
+const COLOR_SCHEME_PROPERTY: &str = "gtk-interface-color-scheme";
+
+// Read the GTK 4.20 property dynamically for compatibility with older releases
+fn system_prefers_dark(settings: &gtk::Settings) -> Option<bool> {
+    if !settings.has_property(COLOR_SCHEME_PROPERTY) {
+        return None;
+    }
+
+    // Treat unknown values as GTK's default light scheme
+    glib::EnumValue::from_value(&settings.property_value(COLOR_SCHEME_PROPERTY)).and_then(
+        |(_, value)| match value.nick() {
+            "unsupported" => None,
+            "dark" => Some(true),
+            _ => Some(false),
+        },
+    )
+}
+
+fn system_color_scheme() -> Option<(gtk::Settings, bool)> {
+    let settings = gtk::Settings::default()?;
+    system_prefers_dark(&settings).map(|prefers_dark| (settings, prefers_dark))
+}
+
+fn apply_color_scheme(window: &ApplicationWindow, prefers_dark: bool) {
+    window.remove_css_class("dark-theme");
+    window.remove_css_class("light-theme");
+    window.add_css_class(if prefers_dark {
+        "dark-theme"
+    } else {
+        "light-theme"
+    });
+}
+
+pub(crate) fn supports_system_color_scheme() -> bool {
+    system_color_scheme().is_some()
+}
+
+pub(crate) fn apply_system_color_scheme(window: &ApplicationWindow) {
+    let Some((_, prefers_dark)) = system_color_scheme() else {
+        return;
+    };
+
+    apply_color_scheme(window, prefers_dark);
+}
+
 pub fn freq_to_band(freq: u32) -> Option<&'static str> {
     match freq {
         2400..=2500 => Some("2.4GHz"),
@@ -35,7 +80,23 @@ pub fn build_ui(app: &Application) {
     let win = ApplicationWindow::new(app);
     win.set_title(Some(""));
     win.set_default_size(450, 600);
-    win.add_css_class("dark-theme");
+
+    // Preserve the dark default when system preferences are unavailable
+    if let Some((settings, prefers_dark)) = system_color_scheme() {
+        win.add_css_class("system-theme");
+        apply_color_scheme(&win, prefers_dark);
+
+        let win_weak = win.downgrade();
+        settings.connect_notify_local(Some(COLOR_SCHEME_PROPERTY), move |_, _| {
+            if let Some(window) = win_weak.upgrade()
+                && window.has_css_class("system-theme")
+            {
+                apply_system_color_scheme(&window);
+            }
+        });
+    } else {
+        win.add_css_class("dark-theme");
+    }
 
     let vbox = GtkBox::new(Orientation::Vertical, 0);
     let status = Label::new(None);

@@ -1,7 +1,9 @@
 use gtk::prelude::*;
 use gtk::{Align, Box, Button, Label, Orientation};
 
+use crate::ui::apply_system_color_scheme;
 use crate::ui::header::THEMES;
+use crate::ui::supports_system_color_scheme;
 
 const CUSTOM_INDEX: u32 = 0;
 
@@ -36,7 +38,7 @@ impl SettingsPage {
         root.append(&title);
 
         Self::build_theme_section(&root);
-        Self::build_light_dark_section(&root, window);
+        Self::build_appearance_section(&root, window);
 
         Self { root }
     }
@@ -96,7 +98,7 @@ impl SettingsPage {
         root.append(&section);
     }
 
-    fn build_light_dark_section(root: &gtk::Box, window: &gtk::ApplicationWindow) {
+    fn build_appearance_section(root: &gtk::Box, window: &gtk::ApplicationWindow) {
         let section = Box::new(Orientation::Vertical, 6);
 
         let label = Label::new(Some("Appearance"));
@@ -106,6 +108,10 @@ impl SettingsPage {
 
         let toggle_box = Box::new(Orientation::Horizontal, 8);
 
+        let system_btn = Button::with_label("System");
+        system_btn.add_css_class("appearance-btn");
+        system_btn.set_visible(supports_system_color_scheme());
+
         let light_btn = Button::with_label("Light");
         light_btn.add_css_class("appearance-btn");
 
@@ -114,12 +120,14 @@ impl SettingsPage {
 
         {
             let window_weak = window.downgrade();
+            let light_btn_clone = light_btn.clone();
             let dark_btn_clone = dark_btn.clone();
-            light_btn.connect_clicked(move |btn| {
+            system_btn.connect_clicked(move |btn| {
                 if let Some(window) = window_weak.upgrade() {
-                    window.remove_css_class("dark-theme");
-                    window.add_css_class("light-theme");
+                    window.add_css_class("system-theme");
+                    apply_system_color_scheme(&window);
                     btn.add_css_class("appearance-active");
+                    light_btn_clone.remove_css_class("appearance-active");
                     dark_btn_clone.remove_css_class("appearance-active");
                 }
             });
@@ -127,23 +135,45 @@ impl SettingsPage {
 
         {
             let window_weak = window.downgrade();
+            let system_btn_clone = system_btn.clone();
+            let dark_btn_clone = dark_btn.clone();
+            light_btn.connect_clicked(move |btn| {
+                if let Some(window) = window_weak.upgrade() {
+                    window.remove_css_class("system-theme");
+                    window.remove_css_class("dark-theme");
+                    window.add_css_class("light-theme");
+                    btn.add_css_class("appearance-active");
+                    system_btn_clone.remove_css_class("appearance-active");
+                    dark_btn_clone.remove_css_class("appearance-active");
+                }
+            });
+        }
+
+        {
+            let window_weak = window.downgrade();
+            let system_btn_clone = system_btn.clone();
             let light_btn_clone = light_btn.clone();
             dark_btn.connect_clicked(move |btn| {
                 if let Some(window) = window_weak.upgrade() {
+                    window.remove_css_class("system-theme");
                     window.remove_css_class("light-theme");
                     window.add_css_class("dark-theme");
                     btn.add_css_class("appearance-active");
+                    system_btn_clone.remove_css_class("appearance-active");
                     light_btn_clone.remove_css_class("appearance-active");
                 }
             });
         }
 
-        if window.has_css_class("light-theme") {
+        if window.has_css_class("system-theme") {
+            system_btn.add_css_class("appearance-active");
+        } else if window.has_css_class("light-theme") {
             light_btn.add_css_class("appearance-active");
         } else {
             dark_btn.add_css_class("appearance-active");
         }
 
+        toggle_box.append(&system_btn);
         toggle_box.append(&light_btn);
         toggle_box.append(&dark_btn);
         section.append(&toggle_box);

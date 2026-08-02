@@ -36,6 +36,7 @@ impl WiredPage {
 
         let header = Box::new(Orientation::Horizontal, 6);
         let icon = Image::from_icon_name("network-wired-symbolic");
+        icon.add_css_class("wired-device-icon");
         icon.set_pixel_size(24);
 
         let title = Label::new(None);

@@ -230,6 +230,7 @@ label.network-poor { color: var(--error-color); }
 
 /* Loading spinner */
 .loading-spinner {
+  color: var(--text-secondary);
   margin-top: 12px;
   margin-bottom: 12px;
   opacity: 0.6;
@@ -454,4 +455,3 @@ popover row label {
   color: var(--text-secondary);
   font-size: 13px;
 }
-

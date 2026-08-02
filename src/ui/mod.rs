@@ -22,6 +22,89 @@ use tokio::sync::Notify;
 type Callback = Rc<dyn Fn()>;
 type CallbackCell = Rc<std::cell::RefCell<Option<Callback>>>;
 
+const COLOR_SCHEME_PROPERTY: &str = "gtk-interface-color-scheme";
+
+// Read the GTK 4.20 property dynamically for compatibility with older releases
+fn system_prefers_dark(settings: &gtk::Settings) -> Option<bool> {
+    if !settings.has_property(COLOR_SCHEME_PROPERTY) {
+        return None;
+    }
+
+    // Treat unknown values as GTK's default light scheme
+    glib::EnumValue::from_value(&settings.property_value(COLOR_SCHEME_PROPERTY)).and_then(
+        |(_, value)| match value.nick() {
+            "unsupported" => None,
+            "dark" => Some(true),
+            _ => Some(false),
+        },
+    )
+}
+
+fn system_color_scheme() -> Option<(gtk::Settings, bool)> {
+    let settings = gtk::Settings::default()?;
+    system_prefers_dark(&settings).map(|prefers_dark| (settings, prefers_dark))
+}
+
+fn set_interface_color_scheme(settings: &gtk::Settings, prefers_dark: bool) {
+    settings.set_gtk_application_prefer_dark_theme(prefers_dark);
+
+    let Some(property) = settings.find_property(COLOR_SCHEME_PROPERTY) else {
+        return;
+    };
+    let Some(value) = glib::EnumClass::with_type(property.value_type())
+        .and_then(|class| class.to_value_by_nick(if prefers_dark { "dark" } else { "light" }))
+    else {
+        return;
+    };
+
+    settings.set_property_from_value(COLOR_SCHEME_PROPERTY, &value);
+}
+
+fn update_color_scheme(window: &impl IsA<gtk::Widget>, prefers_dark: bool) {
+    window.remove_css_class("dark-theme");
+    window.remove_css_class("light-theme");
+    window.add_css_class(if prefers_dark {
+        "dark-theme"
+    } else {
+        "light-theme"
+    });
+}
+
+pub(crate) fn inherit_color_scheme(window: &impl IsA<gtk::Widget>, parent: &impl IsA<gtk::Widget>) {
+    update_color_scheme(window, parent.has_css_class("dark-theme"));
+}
+
+fn sync_system_color_scheme(window: &ApplicationWindow) {
+    let Some((settings, prefers_dark)) = system_color_scheme() else {
+        return;
+    };
+
+    settings.set_gtk_application_prefer_dark_theme(prefers_dark);
+    update_color_scheme(window, prefers_dark);
+}
+
+pub(crate) fn supports_system_color_scheme() -> bool {
+    system_color_scheme().is_some()
+}
+
+pub(crate) fn apply_color_scheme_override(window: &ApplicationWindow, prefers_dark: bool) {
+    if let Some(settings) = gtk::Settings::default() {
+        set_interface_color_scheme(&settings, prefers_dark);
+    }
+
+    update_color_scheme(window, prefers_dark);
+}
+
+pub(crate) fn apply_system_color_scheme(window: &ApplicationWindow) {
+    if let Some(settings) = gtk::Settings::default()
+        && settings.has_property(COLOR_SCHEME_PROPERTY)
+    {
+        settings.reset_property(COLOR_SCHEME_PROPERTY);
+    }
+
+    sync_system_color_scheme(window);
+}
+
 pub fn freq_to_band(freq: u32) -> Option<&'static str> {
     match freq {
         2400..=2500 => Some("2.4GHz"),
@@ -35,7 +118,23 @@ pub fn build_ui(app: &Application) {
     let win = ApplicationWindow::new(app);
     win.set_title(Some(""));
     win.set_default_size(450, 600);
-    win.add_css_class("dark-theme");
+
+    // Preserve the dark default when system preferences are unavailable
+    if let Some((settings, prefers_dark)) = system_color_scheme() {
+        win.add_css_class("system-theme");
+        update_color_scheme(&win, prefers_dark);
+
+        let win_weak = win.downgrade();
+        settings.connect_notify_local(Some(COLOR_SCHEME_PROPERTY), move |_, _| {
+            if let Some(window) = win_weak.upgrade()
+                && window.has_css_class("system-theme")
+            {
+                sync_system_color_scheme(&window);
+            }
+        });
+    } else {
+        apply_color_scheme_override(&win, true);
+    }
 
     let vbox = GtkBox::new(Orientation::Vertical, 0);
     let status = Label::new(None);

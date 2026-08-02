@@ -1,6 +1,7 @@
 use gtk::prelude::*;
 use gtk::{Align, Box, Button, Label, Orientation};
 
+use crate::ui::apply_color_scheme_override;
 use crate::ui::apply_system_color_scheme;
 use crate::ui::header::THEMES;
 use crate::ui::supports_system_color_scheme;
@@ -140,8 +141,7 @@ impl SettingsPage {
             light_btn.connect_clicked(move |btn| {
                 if let Some(window) = window_weak.upgrade() {
                     window.remove_css_class("system-theme");
-                    window.remove_css_class("dark-theme");
-                    window.add_css_class("light-theme");
+                    apply_color_scheme_override(&window, false);
                     btn.add_css_class("appearance-active");
                     system_btn_clone.remove_css_class("appearance-active");
                     dark_btn_clone.remove_css_class("appearance-active");
@@ -156,8 +156,7 @@ impl SettingsPage {
             dark_btn.connect_clicked(move |btn| {
                 if let Some(window) = window_weak.upgrade() {
                     window.remove_css_class("system-theme");
-                    window.remove_css_class("light-theme");
-                    window.add_css_class("dark-theme");
+                    apply_color_scheme_override(&window, true);
                     btn.add_css_class("appearance-active");
                     system_btn_clone.remove_css_class("appearance-active");
                     light_btn_clone.remove_css_class("appearance-active");

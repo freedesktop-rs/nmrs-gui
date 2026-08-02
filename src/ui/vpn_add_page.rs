@@ -8,6 +8,8 @@ use nmrs::{NetworkManager, WireGuardConfig, WireGuardPeer};
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::ui::inherit_color_scheme;
+
 type OnSuccessCallback = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
 
 pub struct VpnAddPage {
@@ -293,6 +295,7 @@ impl VpnAddPage {
                         ("Open", ResponseType::Accept),
                     ],
                 );
+                inherit_color_scheme(&dialog, &parent);
                 dialog.connect_response(move |dialog, response| {
                     if response == ResponseType::Accept
                         && let Some(file) = dialog.file()

@@ -205,6 +205,7 @@ label.network-poor { color: var(--error-color); }
 .wifi-open { color: var(--text-primary); }
 
 .loading-spinner {
+  color: var(--text-secondary);
   margin-top: 12px;
   margin-bottom: 12px;
   opacity: 0.6;
@@ -361,4 +362,3 @@ popover row label {
   background: var(--bg-secondary);
   border-color: var(--border-color-hover);
 }
-

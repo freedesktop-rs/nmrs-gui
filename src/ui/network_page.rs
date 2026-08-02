@@ -52,6 +52,7 @@ impl NetworkPage {
 
         let header = Box::new(Orientation::Horizontal, 6);
         let icon = Image::from_icon_name("network-wireless-signal-excellent-symbolic");
+        icon.add_css_class("network-icon");
         icon.set_pixel_size(24);
 
         let title = Label::new(None);

@@ -34,3 +34,4 @@ clap = { version = "4.6.1", features = ["derive"] }
 tokio = { version = "1.52", features = ["rt-multi-thread", "macros", "sync", "time"] }
 tokio-util = "0.7.18"
 log = "0.4"
+gpui-kit = "0.8.1"

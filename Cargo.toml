@@ -3,11 +3,11 @@ name = "nmrs-gui"
 version = "1.6.0"
 authors = ["Akrm Al-Hakimi <alhakimiakrmj@gmail.com>"]
 edition = "2024"
-rust-version = "1.85.0"
-description = "GTK4 GUI for managing NetworkManager connections"
+rust-version = "1.90.0"
+description = "A NetworkManager client built on nmrs and gpui"
 license = "MIT"
 repository = "https://github.com/networkmanager-rs/nmrs-gui"
-keywords = ["networkmanager", "gui", "gtk", "linux"]
+keywords = ["networkmanager", "gui", "gpui", "linux", "wifi"]
 categories = ["gui"]
 publish = true
 

@@ -1,3 +1,5 @@
+mod model;
+
 use clap::{ArgAction, Parser};
 use gpui_kit::*;
 

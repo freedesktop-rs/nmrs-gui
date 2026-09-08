@@ -3903,6 +3903,7 @@ dependencies = [
  "log",
  "nmrs",
  "serde",
+ "serde_json",
  "tokio",
  "tokio-util",
  "toml 0.9.12+spec-1.1.0",

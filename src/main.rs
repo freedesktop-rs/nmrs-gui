@@ -1,5 +1,7 @@
 mod backend;
+mod config;
 mod model;
+mod theme;
 
 use clap::{ArgAction, Parser};
 use gpui_kit::*;
@@ -22,7 +24,11 @@ impl Render for Shell {
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     if args.version {
-        println!("nmrs-gui {} ({})", env!("CARGO_PKG_VERSION"), env!("GIT_HASH"));
+        println!(
+            "nmrs-gui {} ({})",
+            env!("CARGO_PKG_VERSION"),
+            env!("GIT_HASH")
+        );
         return Ok(());
     }
 

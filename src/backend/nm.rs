@@ -10,10 +10,10 @@ use nmrs::builders::{WifiConnectionBuilder, WifiMode};
 use nmrs::models::{IpMethod as NmIpMethod, IpSettings, SettingsSummary};
 use nmrs::raw::zvariant::{OwnedValue, Str, Value};
 use nmrs::{
-    AccessPoint as NmAccessPoint, ActiveConnection, BluetoothIdentity,
-    BluetoothNetworkRole, ConnectByUuidConfig, ConnectivityState, DeviceState, EapOptions,
-    GlobalDnsConfiguration, GlobalDnsDomain, NetworkManager, SecurityFeatures, SettingsPatch,
-    VpnType, WifiSecurity, WireGuardConfig, WireGuardPeer,
+    AccessPoint as NmAccessPoint, ActiveConnection, BluetoothIdentity, BluetoothNetworkRole,
+    ConnectByUuidConfig, ConnectivityState, DeviceState, EapOptions, GlobalDnsConfiguration,
+    GlobalDnsDomain, NetworkManager, SecurityFeatures, SettingsPatch, VpnType, WifiSecurity,
+    WireGuardConfig, WireGuardPeer,
 };
 
 use super::Service;
@@ -392,7 +392,11 @@ async fn load_profile(nm: &NetworkManager, uuid: &str) -> Result<ProfileDetail> 
             (name.clone(), entries)
         })
         .collect();
-    sections.sort_by(|a, b| section_rank(&a.0).cmp(&section_rank(&b.0)).then(a.0.cmp(&b.0)));
+    sections.sort_by(|a, b| {
+        section_rank(&a.0)
+            .cmp(&section_rank(&b.0))
+            .then(a.0.cmp(&b.0))
+    });
 
     Ok(ProfileDetail {
         profile: Profile {
@@ -583,8 +587,10 @@ async fn execute(nm: &NetworkManager, action: Action) -> Result<()> {
                 .with_searches(dns.searches.clone())
                 .with_default_servers(dns.servers.clone());
             for (name, servers) in &dns.domains {
-                config =
-                    config.with_domain(name.clone(), GlobalDnsDomain::new().with_servers(servers.clone()));
+                config = config.with_domain(
+                    name.clone(),
+                    GlobalDnsDomain::new().with_servers(servers.clone()),
+                );
             }
             nm.set_global_dns_configuration(&config).await?
         }
@@ -680,7 +686,9 @@ fn ip_section(ip: &IpConfig, v6: bool) -> Result<HashMap<String, OwnedValue>> {
         .addresses
         .iter()
         .filter_map(|cidr| {
-            let (addr, prefix) = cidr.split_once('/').unwrap_or((cidr, if v6 { "64" } else { "24" }));
+            let (addr, prefix) = cidr
+                .split_once('/')
+                .unwrap_or((cidr, if v6 { "64" } else { "24" }));
             let prefix: u32 = prefix.trim().parse().ok()?;
             let mut entry = HashMap::new();
             entry.insert("address".to_string(), Value::from(addr.trim().to_string()));

@@ -83,7 +83,9 @@ fn apply(state: &mut State, action: Action) -> Result<()> {
             state.radios.bluetooth.enabled = !on;
             state.radios.wwan.enabled = !on;
         }
-        Action::Connect { ssid, credentials, .. } => {
+        Action::Connect {
+            ssid, credentials, ..
+        } => {
             if let Credentials::Password(pw) = &credentials
                 && pw.len() < 8
             {
@@ -126,7 +128,12 @@ fn apply(state: &mut State, action: Action) -> Result<()> {
             for net in &mut state.networks {
                 if net.profile.as_deref() == Some(uuid.as_str()) {
                     net.active = on;
-                } else if on && state.profiles.iter().any(|p| p.uuid == uuid && p.kind == ProfileKind::Wifi) {
+                } else if on
+                    && state
+                        .profiles
+                        .iter()
+                        .any(|p| p.uuid == uuid && p.kind == ProfileKind::Wifi)
+                {
                     net.active = false;
                 }
             }
@@ -168,10 +175,20 @@ fn apply(state: &mut State, action: Action) -> Result<()> {
                 .file_stem()
                 .map(|s| s.to_string_lossy().to_string())
                 .unwrap_or_else(|| "imported".into());
-            add_vpn(state, name, VpnKind::OpenVpn, Some("vpn.example.net:1194".into()));
+            add_vpn(
+                state,
+                name,
+                VpnKind::OpenVpn,
+                Some("vpn.example.net:1194".into()),
+            );
         }
         Action::AddWireGuard(form) => {
-            add_vpn(state, form.name.clone(), VpnKind::WireGuard, Some(form.endpoint.clone()));
+            add_vpn(
+                state,
+                form.name.clone(),
+                VpnKind::WireGuard,
+                Some(form.endpoint.clone()),
+            );
         }
         Action::StartHotspot(_) => {}
         Action::SetManaged(iface, on) => {
@@ -273,7 +290,10 @@ fn detail(profile: Profile) -> ProfileDetail {
     }
     sections.push((
         "ipv4".into(),
-        vec![("method".into(), if manual { "manual" } else { "auto" }.into())],
+        vec![(
+            "method".into(),
+            if manual { "manual" } else { "auto" }.into(),
+        )],
     ));
     sections.push(("ipv6".into(), vec![("method".into(), "auto".into())]));
     ProfileDetail {
@@ -303,7 +323,11 @@ fn net(
     known: Option<&str>,
     active: bool,
 ) -> WifiNetwork {
-    let best = aps.iter().max_by_key(|a| a.strength).cloned().unwrap_or_default();
+    let best = aps
+        .iter()
+        .max_by_key(|a| a.strength)
+        .cloned()
+        .unwrap_or_default();
     WifiNetwork {
         ssid: ssid.into(),
         interface: "wlan0".into(),
@@ -506,14 +530,50 @@ fn seed() -> State {
         ],
         profiles: vec![
             profile("a1", "Halcyon", ProfileKind::Wifi, 1_793_570_000, true),
-            profile("a2", "Halcyon Guest", ProfileKind::Wifi, 1_791_100_000, false),
+            profile(
+                "a2",
+                "Halcyon Guest",
+                ProfileKind::Wifi,
+                1_791_100_000,
+                false,
+            ),
             profile("a3", "Studio", ProfileKind::Wifi, 1_788_000_000, false),
-            profile("a4", "Airport_Free_WiFi", ProfileKind::Wifi, 1_760_000_000, false),
-            profile("e1", "Wired connection 1", ProfileKind::Ethernet, 1_793_570_000, true),
-            profile("v1", "mullvad-se-got", ProfileKind::WireGuard, 1_793_560_000, true),
+            profile(
+                "a4",
+                "Airport_Free_WiFi",
+                ProfileKind::Wifi,
+                1_760_000_000,
+                false,
+            ),
+            profile(
+                "e1",
+                "Wired connection 1",
+                ProfileKind::Ethernet,
+                1_793_570_000,
+                true,
+            ),
+            profile(
+                "v1",
+                "mullvad-se-got",
+                ProfileKind::WireGuard,
+                1_793_560_000,
+                true,
+            ),
             profile("v2", "Work", ProfileKind::Vpn, 1_792_000_000, false),
-            profile("v3", "homelab", ProfileKind::WireGuard, 1_790_000_000, false),
-            profile("b1", "Pixel 9 Network", ProfileKind::Bluetooth, 1_770_000_000, false),
+            profile(
+                "v3",
+                "homelab",
+                ProfileKind::WireGuard,
+                1_790_000_000,
+                false,
+            ),
+            profile(
+                "b1",
+                "Pixel 9 Network",
+                ProfileKind::Bluetooth,
+                1_770_000_000,
+                false,
+            ),
             profile("l1", "lo", ProfileKind::Loopback, 1_793_570_000, true),
         ],
         dns: GlobalDns {

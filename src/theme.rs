@@ -1,6 +1,8 @@
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use std::time::SystemTime;
 
-use gpui_kit::component::theme::{Theme, ThemeConfig, ThemeMode, ThemeRegistry};
+use gpui_kit::component::theme::{Theme, ThemeConfig, ThemeMode, ThemeSet};
 use gpui_kit::component::{Colorize, try_parse_color};
 use gpui_kit::*;
 use serde_json::{Map, Value, json};
@@ -319,52 +321,107 @@ fn colors(p: &Palette) -> Value {
     )
 }
 
-pub fn builtin_names() -> Vec<&'static str> {
-    PALETTES.iter().map(|p| p.name).collect()
+pub struct Catalog {
+    pub themes: Vec<Rc<ThemeConfig>>,
+    pub builtin: usize,
+    stamp: Vec<(PathBuf, Option<SystemTime>)>,
 }
 
-pub fn register(cx: &mut App) {
-    let themes: Vec<Value> = PALETTES
+impl Global for Catalog {}
+
+impl Catalog {
+    pub fn get(&self, name: &str) -> Option<Rc<ThemeConfig>> {
+        self.themes.iter().rev().find(|t| t.name == name).cloned()
+    }
+}
+
+fn builtin() -> Vec<Rc<ThemeConfig>> {
+    PALETTES
         .iter()
-        .map(|p| {
-            json!({
+        .filter_map(|p| {
+            let value = json!({
                 "name": p.name,
                 "mode": if p.dark { "dark" } else { "light" },
                 "radius": 8,
                 "radius.lg": 12,
                 "shadow": false,
                 "colors": colors(p),
-            })
+            });
+            serde_json::from_value::<ThemeConfig>(value)
+                .ok()
+                .map(Rc::new)
+        })
+        .collect()
+}
+
+fn scan(dir: &Path) -> Vec<(PathBuf, Option<SystemTime>)> {
+    let mut entries: Vec<(PathBuf, Option<SystemTime>)> = std::fs::read_dir(dir)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|e| e == "json"))
+        .map(|p| {
+            let mtime = std::fs::metadata(&p).and_then(|m| m.modified()).ok();
+            (p, mtime)
         })
         .collect();
-    let set = json!({ "name": "nmrs", "author": "nmrs", "themes": themes });
-    if let Err(err) = ThemeRegistry::global_mut(cx).load_themes_from_str(&set.to_string()) {
-        log::error!("failed to load built-in themes: {err}");
+    entries.sort();
+    entries
+}
+
+fn load_user(stamp: &[(PathBuf, Option<SystemTime>)]) -> (Vec<Rc<ThemeConfig>>, Vec<String>) {
+    let mut themes = Vec::new();
+    let mut errors = Vec::new();
+    for (path, _) in stamp {
+        let parsed = std::fs::read_to_string(path)
+            .map_err(|e| e.to_string())
+            .and_then(|text| serde_json::from_str::<ThemeSet>(&text).map_err(|e| e.to_string()));
+        match parsed {
+            Ok(set) => themes.extend(set.themes.into_iter().map(Rc::new)),
+            Err(err) => errors.push(format!(
+                "{}: {err}",
+                path.file_name().unwrap_or_default().to_string_lossy()
+            )),
+        }
     }
+    (themes, errors)
+}
+
+pub fn load(cx: &mut App) -> Vec<String> {
+    let stamp = scan(&crate::config::themes_dir());
+    let mut themes = builtin();
+    let builtin = themes.len();
+    let (user, errors) = load_user(&stamp);
+    themes.extend(user);
+    cx.set_global(Catalog {
+        themes,
+        builtin,
+        stamp,
+    });
+    errors
+}
+
+pub fn reload_if_changed(cx: &mut App) -> Option<Vec<String>> {
+    let stamp = scan(&crate::config::themes_dir());
+    if cx.global::<Catalog>().stamp == stamp {
+        return None;
+    }
+    Some(load(cx))
 }
 
 pub fn names(cx: &App) -> Vec<(SharedString, bool)> {
-    let mut names: Vec<(SharedString, bool)> = ThemeRegistry::global(cx)
-        .themes()
-        .values()
-        .filter(|t| !t.name.starts_with("Default"))
+    let mut seen = std::collections::HashSet::new();
+    cx.global::<Catalog>()
+        .themes
+        .iter()
+        .filter(|t| seen.insert(t.name.clone()))
         .map(|t| (t.name.clone(), t.mode.is_dark()))
-        .collect();
-    let builtin = builtin_names();
-    names.sort_by_key(|(name, _)| {
-        (
-            builtin
-                .iter()
-                .position(|b| *b == name.as_ref())
-                .unwrap_or(usize::MAX),
-            name.to_lowercase(),
-        )
-    });
-    names
+        .collect()
 }
 
 pub fn swatch(name: &str, cx: &App) -> Option<[Hsla; 4]> {
-    let theme = ThemeRegistry::global(cx).themes().get(name)?;
+    let theme = cx.global::<Catalog>().get(name)?;
     let value = serde_json::to_value(&theme.colors).ok()?;
     let get = |key: &str| {
         value
@@ -403,16 +460,11 @@ pub fn apply(appearance: &Appearance, window: Option<&mut Window>, cx: &mut App)
         })
         .unwrap_or(true);
     let name = resolve_name(appearance, dark);
-    let registry = ThemeRegistry::global(cx);
-    let config: Rc<ThemeConfig> = registry
-        .themes()
-        .get(name.as_str())
-        .cloned()
-        .or_else(|| {
-            let fallback = if dark { "nmrs Dark" } else { "nmrs Light" };
-            registry.themes().get(fallback).cloned()
-        })
-        .unwrap_or_else(|| registry.default_dark_theme().clone());
+    let catalog = cx.global::<Catalog>();
+    let fallback = if dark { "nmrs Dark" } else { "nmrs Light" };
+    let Some(config) = catalog.get(&name).or_else(|| catalog.get(fallback)) else {
+        return;
+    };
 
     let config = with_overrides(&config, appearance);
     let mode = config.mode;

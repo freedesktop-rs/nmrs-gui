@@ -39,7 +39,7 @@ impl Backend {
         let service: Arc<dyn Service> = if demo {
             Arc::new(demo::Demo::new())
         } else {
-            Arc::new(handle.block_on(nm::Nm::connect())?)
+            Arc::new(nm::Nm::new())
         };
 
         Ok(Self {

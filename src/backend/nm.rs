@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::future::Future;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use std::sync::Arc;
 
@@ -15,43 +16,57 @@ use nmrs::{
     GlobalDnsDomain, NetworkManager, SecurityFeatures, SettingsPatch, VpnType, WifiSecurity,
     WireGuardConfig, WireGuardPeer,
 };
+use tokio::sync::OnceCell;
 
 use super::Service;
 use crate::model::*;
 
 pub struct Nm {
-    nm: Arc<NetworkManager>,
+    cell: Arc<OnceCell<Arc<NetworkManager>>>,
 }
 
 impl Nm {
-    pub async fn connect() -> Result<Self> {
-        let nm = NetworkManager::new()
+    pub fn new() -> Self {
+        Self {
+            cell: Arc::default(),
+        }
+    }
+
+    fn client(&self) -> impl Future<Output = Result<Arc<NetworkManager>>> + Send + 'static {
+        let cell = self.cell.clone();
+        async move {
+            cell.get_or_try_init(|| async {
+                NetworkManager::new()
+                    .await
+                    .map(Arc::new)
+                    .context("NetworkManager is not reachable over D-Bus")
+            })
             .await
-            .context("NetworkManager is not reachable over D-Bus")?;
-        Ok(Self { nm: Arc::new(nm) })
+            .cloned()
+        }
     }
 }
 
 impl Service for Nm {
     fn state(&self) -> BoxFuture<'static, Result<State>> {
-        let nm = self.nm.clone();
-        Box::pin(async move { load(&nm).await })
+        let nm = self.client();
+        Box::pin(async move { load(&*nm.await?).await })
     }
 
     fn profile(&self, uuid: String) -> BoxFuture<'static, Result<ProfileDetail>> {
-        let nm = self.nm.clone();
-        Box::pin(async move { load_profile(&nm, &uuid).await })
+        let nm = self.client();
+        Box::pin(async move { load_profile(&*nm.await?, &uuid).await })
     }
 
     fn execute(&self, action: Action) -> BoxFuture<'static, Result<()>> {
-        let nm = self.nm.clone();
-        Box::pin(async move { execute(&nm, action).await })
+        let nm = self.client();
+        Box::pin(async move { execute(&*nm.await?, action).await })
     }
 
     fn watch(&self, tx: mpsc::UnboundedSender<()>) -> BoxFuture<'static, Result<()>> {
-        let nm = self.nm.clone();
+        let nm = self.client();
         Box::pin(async move {
-            let mut events = nm.network_events().await?;
+            let mut events = nm.await?.network_events().await?;
             while events.next().await.is_some() {
                 if tx.unbounded_send(()).is_err() {
                     break;

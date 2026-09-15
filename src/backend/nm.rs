@@ -519,20 +519,10 @@ async fn execute(nm: &NetworkManager, action: Action) -> Result<()> {
             }
         }
         Action::Activate(uuid) => {
-            if is_vpn(nm, &uuid).await {
-                nm.connect_vpn_by_uuid(&uuid).await?
-            } else {
-                nm.connect_by_uuid(&uuid, ConnectByUuidConfig::default())
-                    .await?
-            }
+            nm.connect_by_uuid(&uuid, ConnectByUuidConfig::default())
+                .await?
         }
-        Action::Deactivate(uuid) => {
-            if is_vpn(nm, &uuid).await {
-                nm.disconnect_vpn_by_uuid(&uuid).await?
-            } else {
-                nm.disconnect_by_uuid(&uuid).await?
-            }
-        }
+        Action::Deactivate(uuid) => nm.disconnect_by_uuid(&uuid).await?,
         Action::DisconnectDevice(interface) => nm.disconnect(Some(&interface)).await?,
         Action::DeleteProfile(uuid) => nm.delete_saved_connection(&uuid).await?,
         Action::UpdateProfile(uuid, edit) => {
@@ -614,13 +604,6 @@ async fn execute(nm: &NetworkManager, action: Action) -> Result<()> {
         }
     }
     Ok(())
-}
-
-async fn is_vpn(nm: &NetworkManager, uuid: &str) -> bool {
-    nm.list_vpn_connections()
-        .await
-        .map(|vpns| vpns.iter().any(|v| v.uuid == uuid))
-        .unwrap_or(false)
 }
 
 fn wifi_security(security: Security, credentials: Credentials) -> Result<WifiSecurity> {

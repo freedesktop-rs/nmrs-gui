@@ -2,8 +2,8 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::time::SystemTime;
 
-use gpui_kit::component::theme::{Theme, ThemeConfig, ThemeMode, ThemeSet};
-use gpui_kit::component::{Colorize, try_parse_color};
+use gpui_kit::component::theme::{Theme, ThemeConfig, ThemeSet};
+use gpui_kit::component::try_parse_color;
 use gpui_kit::*;
 use serde_json::{Map, Value, json};
 
@@ -323,7 +323,6 @@ fn colors(p: &Palette) -> Value {
 
 pub struct Catalog {
     pub themes: Vec<Rc<ThemeConfig>>,
-    pub builtin: usize,
     stamp: Vec<(PathBuf, Option<SystemTime>)>,
 }
 
@@ -391,14 +390,9 @@ fn load_user(stamp: &[(PathBuf, Option<SystemTime>)]) -> (Vec<Rc<ThemeConfig>>, 
 pub fn load(cx: &mut App) -> Vec<String> {
     let stamp = scan(&crate::config::themes_dir());
     let mut themes = builtin();
-    let builtin = themes.len();
     let (user, errors) = load_user(&stamp);
     themes.extend(user);
-    cx.set_global(Catalog {
-        themes,
-        builtin,
-        stamp,
-    });
+    cx.set_global(Catalog { themes, stamp });
     errors
 }
 
@@ -535,8 +529,4 @@ fn with_overrides(config: &Rc<ThemeConfig>, appearance: &Appearance) -> Rc<Theme
     serde_json::from_value(value)
         .map(Rc::new)
         .unwrap_or_else(|_| config.clone())
-}
-
-pub fn is_dark(cx: &App) -> bool {
-    Theme::global(cx).mode == ThemeMode::Dark
 }

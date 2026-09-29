@@ -14,7 +14,7 @@ use gpui_kit::*;
 
 use crate::app::NmApp;
 use crate::backend::Backend;
-use crate::config::{Page, Store};
+use crate::config::{LayoutMode, Page, Store};
 
 #[derive(Parser, Debug)]
 #[command(name = "nmrs-gui", disable_version_flag = true)]
@@ -25,13 +25,17 @@ struct Args {
     page: Option<Page>,
     #[arg(long)]
     config: Option<PathBuf>,
+    #[arg(long, value_enum)]
+    layout: Option<LayoutMode>,
+    #[arg(long, default_value = "nmrs")]
+    app_id: String,
     #[arg(long)]
     demo: bool,
 }
 
-fn lock() -> Option<File> {
+fn lock(app_id: &str) -> Option<File> {
     let dir = dirs::runtime_dir().unwrap_or_else(std::env::temp_dir);
-    let file = File::create(dir.join("nmrs-gui.lock")).ok()?;
+    let file = File::create(dir.join(format!("{app_id}.lock"))).ok()?;
     file.try_lock().ok()?;
     Some(file)
 }
@@ -47,17 +51,21 @@ fn main() -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let Some(_lock) = lock() else {
+    let Some(_lock) = lock(&args.app_id) else {
         eprintln!("nmrs-gui is already running");
         std::process::exit(1);
     };
 
     let backend = Backend::start(args.demo)?;
     let mut store = Store::new(args.config);
-    let (config, config_error) = match store.load() {
+    let (mut config, config_error): (config::Config, _) = match store.load() {
         Ok(config) => (config, None),
         Err(err) => (Default::default(), Some(err)),
     };
+    if let Some(layout) = args.layout {
+        config.layout.mode = layout;
+    }
+    let app_id = args.app_id;
     let page = args.page;
 
     gpui_kit::application()
@@ -71,7 +79,7 @@ fn main() -> anyhow::Result<()> {
 
             let size = size(px(config.layout.width), px(config.layout.height));
             let options = WindowOptions {
-                app_id: Some("nmrs".into()),
+                app_id: Some(app_id),
                 titlebar: Some(TitlebarOptions {
                     title: Some("nmrs".into()),
                     ..Default::default()

@@ -138,7 +138,7 @@ pub fn open(app: &mut NmApp, uuid: String, window: &mut Window, cx: &mut Context
 }
 
 pub fn ensure_selection(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) {
-    if app.profiles.selected.is_some() || app.config.layout.mode == LayoutMode::Compact {
+    if app.profiles.selected.is_some() || single_pane(app, window) {
         return;
     }
     let first = app.state.as_ref().and_then(|s| {
@@ -725,8 +725,15 @@ fn render_editor(app: &NmApp, compact: bool, cx: &mut Context<NmApp>) -> Div {
 
 use gpui_kit::component::button::{Button, ButtonVariants};
 
-pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) -> AnyElement {
-    let compact = app.config.layout.mode == LayoutMode::Compact;
+pub fn single_pane(app: &NmApp, window: &Window) -> bool {
+    app.config.layout.mode == LayoutMode::Compact || window.viewport_size().width < px(1000.)
+}
+
+pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> AnyElement {
+    let compact = single_pane(app, window);
+    if !compact {
+        ensure_selection(app, window, cx);
+    }
     let theme = cx.theme();
     if compact {
         if app.profiles.selected.is_some() {
@@ -747,11 +754,14 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
     div()
         .h_flex()
         .size_full()
+        .min_h_0()
+        .overflow_hidden()
         .child(
             div()
                 .v_flex()
                 .w(px(272.))
                 .h_full()
+                .min_h_0()
                 .flex_shrink_0()
                 .border_r_1()
                 .border_color(theme.border)
@@ -789,6 +799,7 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
                 .flex_1()
                 .h_full()
                 .min_w_0()
+                .min_h_0()
                 .overflow_y_scrollbar()
                 .child(
                     div()

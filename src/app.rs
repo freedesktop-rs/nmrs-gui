@@ -526,7 +526,7 @@ impl NmApp {
 impl Render for NmApp {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let compact = self.config.layout.mode == LayoutMode::Compact;
-        let wide = self.page == Page::Profiles && !compact;
+        let wide = self.page == Page::Profiles && !crate::ui::profiles::single_pane(self, window);
         let pad = if compact { px(16.) } else { px(28.) };
         let body = self.render_body(window, cx);
         let theme = cx.theme();
@@ -537,6 +537,8 @@ impl Render for NmApp {
                 .flex_1()
                 .h_full()
                 .min_w_0()
+                .min_h_0()
+                .overflow_hidden()
                 .child(body)
                 .into_any_element()
         } else {

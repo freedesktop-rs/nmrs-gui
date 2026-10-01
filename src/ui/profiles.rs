@@ -27,17 +27,17 @@ pub struct IpInputs {
 
 impl IpInputs {
     fn new(v6: bool, window: &mut Window, cx: &mut Context<NmApp>) -> Self {
-        let (addr, gw, dns) = if v6 {
-            ("2001:db8::10/64", "2001:db8::1", "2606:4700:4700::1111")
+        let (addr, gw) = if v6 {
+            ("2001:db8::10/64", "2001:db8::1")
         } else {
-            ("192.168.1.10/24", "192.168.1.1", "1.1.1.1, 9.9.9.9")
+            ("192.168.1.10/24", "192.168.1.1")
         };
         Self {
             method: IpMethod::Auto,
             addresses: input(addr, false, window, cx),
             gateway: input(gw, false, window, cx),
-            dns: input(dns, false, window, cx),
-            search: input("example.lan", false, window, cx),
+            dns: input("Automatic", false, window, cx),
+            search: input("None", false, window, cx),
             ignore_auto_dns: false,
             never_default: false,
         }

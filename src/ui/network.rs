@@ -23,8 +23,8 @@ impl NetworkUi {
     pub fn new(window: &mut Window, cx: &mut Context<NmApp>) -> Self {
         Self {
             loaded: None,
-            servers: input("1.1.1.1, 9.9.9.9", false, window, cx),
-            search: input("home.arpa", false, window, cx),
+            servers: input("Per connection", false, window, cx),
+            search: input("None", false, window, cx),
             domains: Vec::new(),
         }
     }

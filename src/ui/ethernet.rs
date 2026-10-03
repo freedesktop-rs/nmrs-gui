@@ -170,7 +170,14 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
         return div().into_any_element();
     };
     let body = div().v_flex().child(kit::header("Ethernet", cx));
-    if state.wired.is_empty() {
+    let show_virtual = app.config.devices.show_virtual;
+    let devices: Vec<WiredDevice> = state
+        .wired
+        .iter()
+        .filter(|d| show_virtual || !d.is_virtual())
+        .cloned()
+        .collect();
+    if devices.is_empty() {
         return body
             .child(kit::empty(
                 IconName::Cable,
@@ -185,7 +192,7 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
         div()
             .v_flex()
             .gap(gap)
-            .children(state.wired.iter().map(|d| device_card(app, d, cx))),
+            .children(devices.iter().map(|d| device_card(app, d, cx))),
     )
     .into_any_element()
 }

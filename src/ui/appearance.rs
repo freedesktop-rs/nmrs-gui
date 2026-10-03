@@ -551,6 +551,16 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
             cx,
         ));
 
+    let devices = kit::card(cx).child(kit::setting_row(
+        "Show virtual interfaces",
+        Some("veth, bridge and tunnel devices".into()),
+        toggle("show-virtual", cfg.devices.show_virtual, cx, |c, v| {
+            c.devices.show_virtual = v
+        }),
+        0,
+        cx,
+    ));
+
     let behavior = kit::card(cx)
         .child(kit::setting_row(
             "Close after connecting",
@@ -681,6 +691,8 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
         .child(style)
         .child(kit::section("Wi-Fi list", cx))
         .child(wifi)
+        .child(kit::section("Devices", cx))
+        .child(devices)
         .child(kit::section("Behavior", cx))
         .child(behavior)
         .child(kit::section("Pages", cx))

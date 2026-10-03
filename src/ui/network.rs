@@ -306,7 +306,12 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
         );
         idx += 1;
     }
-    for dev in &state.wired {
+    let show_virtual = app.config.devices.show_virtual;
+    for dev in state
+        .wired
+        .iter()
+        .filter(|d| show_virtual || !d.is_virtual())
+    {
         devices = devices.child(
             div()
                 .h_flex()

@@ -207,6 +207,15 @@ pub struct WiredDevice {
     pub autoconnect: bool,
 }
 
+impl WiredDevice {
+    pub fn is_virtual(&self) -> bool {
+        matches!(
+            self.driver.as_deref(),
+            Some("veth" | "bridge" | "tun" | "dummy" | "macvlan" | "vxlan")
+        ) || self.interface.starts_with("veth")
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum VpnKind {
     WireGuard,

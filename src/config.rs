@@ -10,7 +10,14 @@ pub struct Config {
     pub appearance: Appearance,
     pub layout: Layout,
     pub wifi: Wifi,
+    pub devices: Devices,
     pub behavior: Behavior,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Devices {
+    pub show_virtual: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

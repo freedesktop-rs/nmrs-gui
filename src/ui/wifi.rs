@@ -47,10 +47,10 @@ impl WifiUi {
         Self {
             expanded: None,
             bssid: None,
-            password: input("Password", true, window, cx),
+            password: input("", true, window, cx),
             eap: EapInputs {
                 identity: input("user@example.org", false, window, cx),
-                password: input("Password", true, window, cx),
+                password: input("", true, window, cx),
                 anonymous: input("Optional", false, window, cx),
                 domain: input("Optional", false, window, cx),
                 ca: input("/path/to/ca.pem", false, window, cx),
@@ -62,11 +62,11 @@ impl WifiUi {
             eap_inner: InnerAuth::Mschapv2,
             eap_system_ca: true,
             hidden_open: false,
-            hidden_ssid: input("Network name", false, window, cx),
-            hidden_password: input("Password", true, window, cx),
+            hidden_ssid: input("", false, window, cx),
+            hidden_password: input("", true, window, cx),
             hidden_security: Security::Psk,
             hotspot_open: false,
-            hotspot_ssid: input("Network name", false, window, cx),
+            hotspot_ssid: input("", false, window, cx),
             hotspot_password: input("At least 8 characters", true, window, cx),
             interface: None,
         }

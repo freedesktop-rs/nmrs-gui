@@ -94,7 +94,7 @@ impl ProfilesUi {
             detail: None,
             original: None,
             loading: false,
-            name: input("Name", false, window, cx),
+            name: input("", false, window, cx),
             interface: input("Any", false, window, cx),
             priority: input("0", false, window, cx),
             autoconnect: true,

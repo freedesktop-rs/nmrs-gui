@@ -385,6 +385,7 @@ fn access_points(app: &NmApp, net: &WifiNetwork, cx: &mut Context<NmApp>) -> Div
     div()
         .v_flex()
         .px_3p5()
+        .pt_3()
         .pb_2()
         .child(
             div()

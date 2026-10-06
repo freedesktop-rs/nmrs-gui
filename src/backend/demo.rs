@@ -163,6 +163,14 @@ fn apply(state: &mut State, action: Action) -> Result<()> {
                 p.interface = edit.interface.clone();
             }
         }
+        Action::SetProfileAutoconnect(uuid, on) => {
+            for p in state.profiles.iter_mut().filter(|p| p.uuid == uuid) {
+                p.autoconnect = on;
+            }
+            for v in state.vpns.iter_mut().filter(|v| v.uuid == uuid) {
+                v.autoconnect = on;
+            }
+        }
         Action::ConnectBluetooth { address, .. } => {
             for dev in &mut state.bluetooth {
                 if dev.address == address {
@@ -382,7 +390,6 @@ fn seed() -> State {
             state: LinkState::Connected,
             active_ssid: Some("Halcyon".into()),
             managed: true,
-            autoconnect: true,
         }],
         networks: vec![
             net(

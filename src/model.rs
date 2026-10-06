@@ -104,7 +104,6 @@ pub struct WifiDevice {
     pub state: LinkState,
     pub active_ssid: Option<String>,
     pub managed: bool,
-    pub autoconnect: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -470,6 +469,7 @@ pub enum Action {
     DisconnectDevice(String),
     DeleteProfile(String),
     UpdateProfile(String, Box<ProfileEdit>),
+    SetProfileAutoconnect(String, bool),
     ConnectBluetooth {
         address: String,
         name: String,
@@ -502,6 +502,7 @@ impl Action {
             Self::DisconnectDevice(iface) => format!("Disconnect {iface}"),
             Self::DeleteProfile(_) => "Forget".into(),
             Self::UpdateProfile(..) => "Save profile".into(),
+            Self::SetProfileAutoconnect(_, on) => format!("Autoconnect {}", on_off(*on)),
             Self::ConnectBluetooth { name, .. } => format!("Connect to {name}"),
             Self::ImportOvpn { .. } => "Import OpenVPN".into(),
             Self::AddWireGuard(form) => format!("Add {}", form.name),

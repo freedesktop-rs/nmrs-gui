@@ -117,7 +117,6 @@ async fn load(nm: &NetworkManager) -> Result<State> {
             state: link(&dev.state),
             active_ssid: dev.active_ssid.clone(),
             managed: dev.managed,
-            autoconnect: dev.autoconnect,
         })
         .collect();
 
@@ -528,6 +527,11 @@ async fn execute(nm: &NetworkManager, action: Action) -> Result<()> {
         Action::UpdateProfile(uuid, edit) => {
             nm.update_saved_connection(&uuid, settings_patch(&edit)?)
                 .await?
+        }
+        Action::SetProfileAutoconnect(uuid, on) => {
+            let mut patch = SettingsPatch::default();
+            patch.autoconnect = Some(on);
+            nm.update_saved_connection(&uuid, patch).await?
         }
         Action::ConnectBluetooth { address, name, dun } => {
             let role = if dun {

@@ -333,12 +333,31 @@ fn vpn_details(app: &NmApp, vpn: &Vpn, cx: &mut Context<NmApp>) -> Div {
     let armed = app.is_confirming(&forget);
     let uuid = vpn.uuid.clone();
     let uuid_edit = vpn.uuid.clone();
+    let uuid_auto = vpn.uuid.clone();
     div()
         .v_flex()
         .bg(theme.background.opacity(0.35))
         .border_t_1()
         .border_color(theme.border)
         .child(kit::kv_grid(items, cx))
+        .child(
+            div().border_t_1().border_color(theme.border).child(kit::setting_row(
+                "Connect automatically",
+                None,
+                Switch::new(SharedString::from(format!("vpn-auto-{}", vpn.uuid)))
+                    .checked(vpn.autoconnect)
+                    .on_click(cx.listener(move |this, on: &bool, window, cx| {
+                        this.run(
+                            format!("auto:{uuid_auto}"),
+                            Action::SetProfileAutoconnect(uuid_auto.clone(), *on),
+                            window,
+                            cx,
+                        )
+                    })),
+                0,
+                cx,
+            )),
+        )
         .child(
             kit::actions()
                 .px_3p5()

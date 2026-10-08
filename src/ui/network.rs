@@ -276,35 +276,19 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
             ),
     );
 
-    let mut devices = kit::card(cx);
-    let mut idx = 0;
+    let mut rows: Vec<(IconName, String, bool, bool, Vec<String>)> = Vec::new();
     for dev in &state.wifi_devices {
-        devices = devices.child(
-            div()
-                .h_flex()
-                .items_center()
-                .gap_3()
-                .min_h(app.row_height())
-                .px_3p5()
-                .map(kit::divided(idx, cx))
-                .child(kit::badge_icon(IconName::Wifi, dev.state.is_up(), cx))
-                .child(kit::title_block(
-                    dev.interface.clone(),
-                    Some(
-                        [
-                            Some(dev.state.label().to_string()),
-                            dev.driver.clone(),
-                            Some(dev.mac.clone()),
-                        ]
-                        .into_iter()
-                        .flatten()
-                        .collect::<Vec<_>>()
-                        .join(" · "),
-                    ),
-                    cx,
-                )),
-        );
-        idx += 1;
+        let mut meta = vec![dev.state.label().to_string()];
+        meta.extend(dev.active_ssid.clone());
+        meta.extend(dev.driver.clone());
+        meta.push(dev.mac.clone());
+        rows.push((
+            IconName::Wifi,
+            dev.interface.clone(),
+            dev.state.is_up(),
+            dev.managed,
+            meta,
+        ));
     }
     let show_virtual = app.config.devices.show_virtual;
     for dev in state
@@ -312,37 +296,54 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
         .iter()
         .filter(|d| show_virtual || !d.is_virtual())
     {
-        devices = devices.child(
+        let mut meta = vec![dev.state.label().to_string()];
+        meta.extend(dev.driver.clone());
+        meta.push(dev.mac.clone());
+        rows.push((
+            IconName::EthernetPort,
+            dev.interface.clone(),
+            dev.state.is_up(),
+            dev.managed,
+            meta,
+        ));
+    }
+    let height = app.row_height();
+    let has_devices = !rows.is_empty();
+    let devices = kit::card(cx).children(rows.into_iter().enumerate().map(
+        |(i, (icon, iface, up, managed, meta))| {
+            let key = format!("managed:{iface}");
+            let pending = app.is_pending(&key);
+            let target = iface.clone();
             div()
                 .h_flex()
                 .items_center()
                 .gap_3()
-                .min_h(app.row_height())
+                .min_h(height)
                 .px_3p5()
-                .map(kit::divided(idx, cx))
-                .child(kit::badge_icon(
-                    IconName::EthernetPort,
-                    dev.state.is_up(),
-                    cx,
-                ))
-                .child(kit::title_block(
-                    dev.interface.clone(),
-                    Some(
-                        [
-                            Some(dev.state.label().to_string()),
-                            dev.driver.clone(),
-                            Some(dev.mac.clone()),
-                        ]
-                        .into_iter()
-                        .flatten()
-                        .collect::<Vec<_>>()
-                        .join(" · "),
-                    ),
-                    cx,
-                )),
-        );
-        idx += 1;
-    }
+                .map(kit::divided(i, cx))
+                .child(kit::badge_icon(icon, up, cx))
+                .child(kit::title_block(iface.clone(), Some(meta.join(" · ")), cx))
+                .child(
+                    div()
+                        .text_xs()
+                        .text_color(theme.muted_foreground)
+                        .child("Managed"),
+                )
+                .child(
+                    Switch::new(SharedString::from(format!("if-managed-{iface}")))
+                        .checked(managed)
+                        .disabled(pending)
+                        .on_click(cx.listener(move |this, on: &bool, window, cx| {
+                            this.run(
+                                key.clone(),
+                                Action::SetManaged(target.clone(), *on),
+                                window,
+                                cx,
+                            )
+                        })),
+                )
+        },
+    ));
 
     div()
         .v_flex()
@@ -352,7 +353,7 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
         .child(connectivity)
         .child(kit::section("Global DNS", cx))
         .child(dns)
-        .when(idx > 0, |s| {
+        .when(has_devices, |s| {
             s.child(kit::section("Interfaces", cx)).child(devices)
         })
         .into_any_element()

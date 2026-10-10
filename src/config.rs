@@ -310,3 +310,75 @@ impl Store {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn empty_file_yields_defaults() {
+        let config: Config = toml::from_str("").unwrap();
+        assert_eq!(config, Config::default());
+    }
+
+    #[test]
+    fn partial_sections_keep_other_defaults() {
+        let config: Config = toml::from_str(
+            r##"
+            [appearance]
+            theme = "Nord"
+            accent = "#88c0d0"
+
+            [layout]
+            mode = "compact"
+            pages = ["wifi", "vpn"]
+            "##,
+        )
+        .unwrap();
+        assert_eq!(config.appearance.theme, "Nord");
+        assert_eq!(config.appearance.accent.as_deref(), Some("#88c0d0"));
+        assert_eq!(config.appearance.font_size, 14.0);
+        assert_eq!(config.layout.mode, LayoutMode::Compact);
+        assert_eq!(config.layout.pages, vec![Page::Wifi, Page::Vpn]);
+        assert_eq!(config.wifi, Wifi::default());
+    }
+
+    #[test]
+    fn round_trips_through_toml() {
+        let mut config = Config::default();
+        config.wifi.signal = SignalStyle::Both;
+        config.appearance.density = Density::Spacious;
+        let text = toml::to_string_pretty(&config).unwrap();
+        assert_eq!(toml::from_str::<Config>(&text).unwrap(), config);
+    }
+
+    #[test]
+    fn store_saves_and_detects_external_edits() {
+        let dir = std::env::temp_dir().join(format!("nmrs-gui-test-{}", std::process::id()));
+        let path = dir.join("config.toml");
+        let mut store = Store::new(Some(path.clone()));
+        assert_eq!(store.load().unwrap(), Config::default());
+
+        let mut config = Config::default();
+        config.behavior.close_on_connect = true;
+        store.save(&config).unwrap();
+        assert!(!store.changed());
+        assert_eq!(store.load().unwrap(), config);
+
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        std::fs::write(&path, "[behavior]\nclose_on_escape = false\n").unwrap();
+        assert!(store.changed());
+        assert!(!store.load().unwrap().behavior.close_on_escape);
+        std::fs::remove_dir_all(dir).ok();
+    }
+
+    #[test]
+    fn invalid_file_reports_error() {
+        let dir = std::env::temp_dir().join(format!("nmrs-gui-bad-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("config.toml");
+        std::fs::write(&path, "[layout]\nmode = \"diagonal\"\n").unwrap();
+        assert!(Store::new(Some(path)).load().is_err());
+        std::fs::remove_dir_all(dir).ok();
+    }
+}

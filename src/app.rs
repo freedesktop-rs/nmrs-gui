@@ -165,10 +165,10 @@ impl NmApp {
                     }
                     if dirty {
                         theme::apply(&this.config.appearance, Some(window), cx);
-                        if !this.config.layout.pages.contains(&this.page) {
-                            if let Some(first) = this.config.layout.pages.first() {
-                                this.page = *first;
-                            }
+                        if !this.config.layout.pages.contains(&this.page)
+                            && let Some(first) = this.config.layout.pages.first()
+                        {
+                            this.page = *first;
                         }
                         cx.notify();
                     }

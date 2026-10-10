@@ -10,7 +10,7 @@ use crate::model::*;
 use crate::ui::kit;
 
 fn speed(mbps: u32) -> String {
-    if mbps >= 1000 && mbps % 1000 == 0 {
+    if mbps >= 1000 && mbps.is_multiple_of(1000) {
         format!("{} Gb/s", mbps / 1000)
     } else if mbps >= 1000 {
         format!("{:.1} Gb/s", mbps as f32 / 1000.0)

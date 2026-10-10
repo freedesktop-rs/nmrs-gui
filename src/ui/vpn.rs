@@ -341,22 +341,25 @@ fn vpn_details(app: &NmApp, vpn: &Vpn, cx: &mut Context<NmApp>) -> Div {
         .border_color(theme.border)
         .child(kit::kv_grid(items, cx))
         .child(
-            div().border_t_1().border_color(theme.border).child(kit::setting_row(
-                "Connect automatically",
-                None,
-                Switch::new(SharedString::from(format!("vpn-auto-{}", vpn.uuid)))
-                    .checked(vpn.autoconnect)
-                    .on_click(cx.listener(move |this, on: &bool, window, cx| {
-                        this.run(
-                            format!("auto:{uuid_auto}"),
-                            Action::SetProfileAutoconnect(uuid_auto.clone(), *on),
-                            window,
-                            cx,
-                        )
-                    })),
-                0,
-                cx,
-            )),
+            div()
+                .border_t_1()
+                .border_color(theme.border)
+                .child(kit::setting_row(
+                    "Connect automatically",
+                    None,
+                    Switch::new(SharedString::from(format!("vpn-auto-{}", vpn.uuid)))
+                        .checked(vpn.autoconnect)
+                        .on_click(cx.listener(move |this, on: &bool, window, cx| {
+                            this.run(
+                                format!("auto:{uuid_auto}"),
+                                Action::SetProfileAutoconnect(uuid_auto.clone(), *on),
+                                window,
+                                cx,
+                            )
+                        })),
+                    0,
+                    cx,
+                )),
         )
         .child(
             kit::actions()

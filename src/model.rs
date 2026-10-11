@@ -520,3 +520,49 @@ impl Action {
 fn on_off(on: bool) -> &'static str {
     if on { "on" } else { "off" }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn maps_frequencies_to_bands() {
+        assert_eq!(band(2437), Some("2.4 GHz"));
+        assert_eq!(band(5180), Some("5 GHz"));
+        assert_eq!(band(6115), Some("6 GHz"));
+        assert_eq!(band(60480), None);
+    }
+
+    #[test]
+    fn maps_frequencies_to_channels() {
+        assert_eq!(channel(2412), Some(1));
+        assert_eq!(channel(2484), Some(14));
+        assert_eq!(channel(5180), Some(36));
+        assert_eq!(channel(5745), Some(149));
+        assert_eq!(channel(5955), Some(1));
+    }
+
+    #[test]
+    fn detects_virtual_wired_devices() {
+        let mut dev = WiredDevice {
+            interface: "veth3b063a8".into(),
+            ..Default::default()
+        };
+        assert!(dev.is_virtual());
+        dev.interface = "enp39s0".into();
+        dev.driver = Some("r8169".into());
+        assert!(!dev.is_virtual());
+        dev.driver = Some("bridge".into());
+        assert!(dev.is_virtual());
+    }
+
+    #[test]
+    fn classifies_profile_kinds() {
+        assert_eq!(ProfileKind::from_nm("802-11-wireless"), ProfileKind::Wifi);
+        assert_eq!(ProfileKind::from_nm("wireguard"), ProfileKind::WireGuard);
+        assert_eq!(
+            ProfileKind::from_nm("tun"),
+            ProfileKind::Other("tun".into())
+        );
+    }
+}

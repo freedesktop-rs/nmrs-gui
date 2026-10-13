@@ -530,3 +530,64 @@ fn with_overrides(config: &Rc<ThemeConfig>, appearance: &Appearance) -> Rc<Theme
         .map(Rc::new)
         .unwrap_or_else(|_| config.clone())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn color(config: &ThemeConfig, key: &str) -> Option<String> {
+        serde_json::to_value(&config.colors)
+            .ok()?
+            .get(key)?
+            .as_str()
+            .map(String::from)
+    }
+
+    #[::core::prelude::v1::test]
+    fn every_palette_builds_a_theme() {
+        let themes = builtin();
+        assert_eq!(themes.len(), PALETTES.len());
+        for (theme, palette) in themes.iter().zip(PALETTES) {
+            assert_eq!(theme.name.as_ref(), palette.name);
+            assert_eq!(theme.mode.is_dark(), palette.dark);
+            assert_eq!(color(theme, "background").as_deref(), Some(palette.bg));
+        }
+    }
+
+    #[::core::prelude::v1::test]
+    fn accent_override_replaces_primary() {
+        let base = builtin().remove(0);
+        let appearance = Appearance {
+            accent: Some("#ff7800".into()),
+            ..Default::default()
+        };
+        let themed = with_overrides(&base, &appearance);
+        assert_eq!(
+            color(&themed, "primary.background").as_deref(),
+            Some("#ff7800")
+        );
+        assert_eq!(color(&themed, "ring").as_deref(), Some("#ff7800"));
+    }
+
+    #[::core::prelude::v1::test]
+    fn invalid_accent_is_ignored() {
+        let base = builtin().remove(0);
+        let appearance = Appearance {
+            accent: Some("not-a-color".into()),
+            ..Default::default()
+        };
+        assert!(Rc::ptr_eq(&with_overrides(&base, &appearance), &base));
+    }
+
+    #[::core::prelude::v1::test]
+    fn system_mode_picks_by_appearance() {
+        let appearance = Appearance::default();
+        assert_eq!(resolve_name(&appearance, true), "nmrs Dark");
+        assert_eq!(resolve_name(&appearance, false), "nmrs Light");
+        let fixed = Appearance {
+            theme: "Nord".into(),
+            ..Default::default()
+        };
+        assert_eq!(resolve_name(&fixed, false), "Nord");
+    }
+}

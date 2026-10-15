@@ -2,16 +2,27 @@
   lib,
   stdenv,
   rustPlatform,
-  glib-networking,
   pkg-config,
-  wrapGAppsHook4,
+  makeWrapper,
+  fontconfig,
+  freetype,
   libxkbcommon,
   wayland,
-  glib,
-  gobject-introspection,
-  gtk4,
-  libadwaita,
+  vulkan-loader,
+  xorg,
 }:
+
+let
+  runtimeLibs = [
+    fontconfig
+    freetype
+    libxkbcommon
+    wayland
+    vulkan-loader
+    xorg.libX11
+    xorg.libxcb
+  ];
+in
 
 rustPlatform.buildRustPackage {
   pname = "nmrs-gui";
@@ -23,28 +34,21 @@ rustPlatform.buildRustPackage {
 
   nativeBuildInputs = [
     pkg-config
-  ]
-  ++ lib.optionals stdenv.hostPlatform.isLinux [ wrapGAppsHook4 ];
-
-  buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
-    glib-networking
-    libxkbcommon
-    wayland
-    glib
-    gobject-introspection
-    gtk4
-    libadwaita
+    makeWrapper
   ];
+
+  buildInputs = lib.optionals stdenv.hostPlatform.isLinux runtimeLibs;
 
   doCheck = false;
   doInstallCheck = true;
 
   postInstall = ''
     install -D nmrs.desktop -t $out/share/applications
+    wrapProgram $out/bin/nmrs-gui --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeLibs}
   '';
 
   meta = with lib; {
-    description = "GTK4 GUI for managing NetworkManager connections";
+    description = "A NetworkManager client built on nmrs and gpui";
     homepage = "https://github.com/networkmanager-rs/nmrs-gui";
     license = licenses.mit;
     maintainers = [ ];

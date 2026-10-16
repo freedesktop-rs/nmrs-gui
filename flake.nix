@@ -34,14 +34,16 @@
         ];
 
         buildInputs = with pkgs; [
-          glib-networking
-          gobject-introspection
-          gtk4
-          libadwaita
+          fontconfig
+          freetype
           libxkbcommon
           wayland
-          glib
+          vulkan-loader
+          xorg.libX11
+          xorg.libxcb
         ];
+
+        runtimeLibs = lib.makeLibraryPath buildInputs;
 
         naersk-package = pkgs.callPackage naersk {
           cargo = toolchain;
@@ -66,6 +68,7 @@
               ++ nativeBuildInputs
               ++ buildInputs;
             RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";
+            LD_LIBRARY_PATH = runtimeLibs;
 
             shellHook = ''
               alias ls=eza
@@ -80,15 +83,12 @@
           version = cargoToml.package.version;
           src = ./.;
 
-          nativeBuildInputs =
-            nativeBuildInputs
-            ++ (with pkgs; [
-              wrapGAppsHook4
-            ]);
+          nativeBuildInputs = nativeBuildInputs ++ [pkgs.makeWrapper];
           inherit buildInputs;
 
           postInstall = ''
             install -D nmrs.desktop -t $out/share/applications
+            wrapProgram $out/bin/nmrs-gui --prefix LD_LIBRARY_PATH : ${runtimeLibs}
           '';
 
           meta = with lib; {

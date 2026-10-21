@@ -180,10 +180,14 @@ fn connect(app: &mut NmApp, ssid: &str, window: &mut Window, cx: &mut Context<Nm
         return;
     };
     let key = format!("wifi:{ssid}");
-    if let (true, Some(uuid), None) = (net.known, net.profile.clone(), app.wifi.bssid.as_ref()) {
+    let pinned = app.wifi.bssid.is_some();
+    if let (true, Some(uuid)) = (net.known, net.profile.clone())
+        && (!pinned || net.security == Security::Eap)
+    {
         return after_connect(app, key, Action::Activate(uuid), window, cx);
     }
     let credentials = match net.security {
+        _ if net.known && net.security.needs_secret() => Credentials::Password(String::new()),
         Security::Open | Security::Owe => Credentials::None,
         Security::Eap => Credentials::Enterprise(Box::new(enterprise(app, cx))),
         _ => {

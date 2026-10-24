@@ -662,9 +662,13 @@ fn settings_patch(edit: &ProfileEdit) -> Result<SettingsPatch> {
     patch.interface_name = Some(edit.interface.clone().filter(|s| !s.is_empty()));
 
     let mut overlay = HashMap::new();
-    overlay.insert("ipv4".to_string(), ip_section(&edit.ipv4, false)?);
-    overlay.insert("ipv6".to_string(), ip_section(&edit.ipv6, true)?);
-    patch.raw_overlay = Some(overlay);
+    if let Some(ipv4) = &edit.ipv4 {
+        overlay.insert("ipv4".to_string(), ip_section(ipv4, false)?);
+    }
+    if let Some(ipv6) = &edit.ipv6 {
+        overlay.insert("ipv6".to_string(), ip_section(ipv6, true)?);
+    }
+    patch.raw_overlay = (!overlay.is_empty()).then_some(overlay);
     Ok(patch)
 }
 

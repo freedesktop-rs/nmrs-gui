@@ -203,8 +203,8 @@ fn load(app: &mut NmApp, detail: ProfileDetail, window: &mut Window, cx: &mut Co
         interface: p.interface.clone().filter(|s| !s.is_empty()),
         autoconnect: p.autoconnect,
         priority: p.priority,
-        ipv4: detail.ipv4.clone(),
-        ipv6: detail.ipv6.clone(),
+        ipv4: Some(detail.ipv4.clone()),
+        ipv6: Some(detail.ipv6.clone()),
     });
     ui.detail = Some(detail);
 }
@@ -216,8 +216,8 @@ fn edit(app: &NmApp, cx: &App) -> ProfileEdit {
         interface: Some(value(&ui.interface, cx)).filter(|s| !s.is_empty()),
         autoconnect: ui.autoconnect,
         priority: value(&ui.priority, cx).parse().unwrap_or(0),
-        ipv4: ui.v4.read(cx),
-        ipv6: ui.v6.read(cx),
+        ipv4: Some(ui.v4.read(cx)),
+        ipv6: Some(ui.v6.read(cx)),
     }
 }
 
@@ -232,9 +232,17 @@ fn save(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) {
     let Some(uuid) = app.profiles.selected.clone() else {
         return;
     };
-    let patch = edit(app, cx);
+    let mut patch = edit(app, cx);
     if patch.name.is_empty() {
         return;
+    }
+    if let Some(original) = &app.profiles.original {
+        if patch.ipv4 == original.ipv4 {
+            patch.ipv4 = None;
+        }
+        if patch.ipv6 == original.ipv6 {
+            patch.ipv6 = None;
+        }
     }
     app.run_then(
         format!("save:{uuid}"),

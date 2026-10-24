@@ -380,8 +380,8 @@ pub struct ProfileEdit {
     pub interface: Option<String>,
     pub autoconnect: bool,
     pub priority: i32,
-    pub ipv4: IpConfig,
-    pub ipv6: IpConfig,
+    pub ipv4: Option<IpConfig>,
+    pub ipv6: Option<IpConfig>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]

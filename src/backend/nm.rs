@@ -730,3 +730,78 @@ fn ip_section(ip: &IpConfig, v6: bool) -> Result<HashMap<String, OwnedValue>> {
     section.insert("never-default".into(), owned(ip.never_default)?);
     Ok(section)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn edit() -> ProfileEdit {
+        ProfileEdit {
+            name: "Home".into(),
+            interface: Some(String::new()),
+            autoconnect: true,
+            priority: 5,
+            ipv4: None,
+            ipv6: None,
+        }
+    }
+
+    #[test]
+    fn rename_only_leaves_ip_sections_alone() {
+        let patch = settings_patch(&edit()).unwrap();
+        assert_eq!(patch.id.as_deref(), Some("Home"));
+        assert_eq!(patch.autoconnect_priority, Some(5));
+        assert_eq!(patch.interface_name, Some(None));
+        assert!(patch.raw_overlay.is_none());
+    }
+
+    #[test]
+    fn manual_ipv4_encodes_addresses_and_dns() {
+        let mut e = edit();
+        e.ipv4 = Some(IpConfig {
+            method: IpMethod::Manual,
+            addresses: vec!["10.0.0.5/24".into(), "10.0.1.5".into()],
+            gateway: Some("10.0.0.1".into()),
+            dns: vec!["1.1.1.1".into(), "bogus".into()],
+            ..Default::default()
+        });
+        let patch = settings_patch(&e).unwrap();
+        let overlay = patch.raw_overlay.unwrap();
+        let ipv4 = &overlay["ipv4"];
+        assert!(!overlay.contains_key("ipv6"));
+        assert_eq!(render_value(&ipv4["method"]), "manual");
+        assert_eq!(render_value(&ipv4["gateway"]), "10.0.0.1");
+        let dns = Vec::<u32>::try_from(ipv4["dns"].try_clone().unwrap()).unwrap();
+        assert_eq!(dns, vec![u32::from_ne_bytes([1, 1, 1, 1])]);
+        let addresses = render_value(&ipv4["address-data"]);
+        assert!(addresses.contains("10.0.0.5") && addresses.contains("10.0.1.5"));
+    }
+
+    #[test]
+    fn disabled_ipv6_maps_to_ignore() {
+        let mut e = edit();
+        e.ipv6 = Some(IpConfig {
+            method: IpMethod::Disabled,
+            ..Default::default()
+        });
+        let overlay = settings_patch(&e).unwrap().raw_overlay.unwrap();
+        assert_eq!(render_value(&overlay["ipv6"]["method"]), "ignore");
+    }
+
+    #[test]
+    fn security_and_credentials_map_to_nmrs() {
+        assert!(matches!(
+            wifi_security(Security::Sae, Credentials::Password("pw".into())).unwrap(),
+            WifiSecurity::Sae { .. }
+        ));
+        assert!(matches!(
+            wifi_security(Security::Psk, Credentials::Password(String::new())).unwrap(),
+            WifiSecurity::WpaPsk { psk } if psk.is_empty()
+        ));
+        assert!(matches!(
+            wifi_security(Security::Open, Credentials::None).unwrap(),
+            WifiSecurity::Open
+        ));
+        assert!(wifi_security(Security::Psk, Credentials::None).is_err());
+    }
+}

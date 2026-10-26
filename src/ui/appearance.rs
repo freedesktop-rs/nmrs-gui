@@ -658,7 +658,7 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
                         .label("Open folder")
                         .on_click(|_, _, cx| {
                             let dir = crate::config::dir();
-                            std::fs::create_dir_all(crate::config::themes_dir()).ok();
+                            crate::config::ensure_dir(&crate::config::themes_dir()).ok();
                             cx.open_with_system(&dir);
                         }),
                 )

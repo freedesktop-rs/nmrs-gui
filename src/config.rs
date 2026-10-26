@@ -264,6 +264,17 @@ pub fn themes_dir() -> PathBuf {
     dir().join("themes")
 }
 
+pub fn ensure_dir(path: &Path) -> std::io::Result<()> {
+    if let Ok(target) = std::fs::read_link(path) {
+        let target = match path.parent() {
+            Some(parent) if target.is_relative() => parent.join(target),
+            _ => target,
+        };
+        return ensure_dir(&target);
+    }
+    std::fs::create_dir_all(path)
+}
+
 pub struct Store {
     path: PathBuf,
     modified: Option<SystemTime>,
@@ -302,10 +313,10 @@ impl Store {
 
     pub fn save(&mut self, config: &Config) -> Result<(), String> {
         if let Some(parent) = self.path.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            ensure_dir(parent).map_err(|e| format!("{}: {e}", parent.display()))?;
         }
         let text = toml::to_string_pretty(config).map_err(|e| e.to_string())?;
-        std::fs::write(&self.path, text).map_err(|e| e.to_string())?;
+        std::fs::write(&self.path, text).map_err(|e| format!("{}: {e}", self.path.display()))?;
         self.modified = self.mtime();
         Ok(())
     }
@@ -370,6 +381,18 @@ mod tests {
         assert!(store.changed());
         assert!(!store.load().unwrap().behavior.close_on_escape);
         std::fs::remove_dir_all(dir).ok();
+    }
+
+    #[test]
+    fn saves_through_a_dangling_symlinked_dir() {
+        let root = std::env::temp_dir().join(format!("nmrs-gui-link-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let link = root.join("nmrs");
+        std::os::unix::fs::symlink(root.join("dotfiles/nmrs"), &link).unwrap();
+        let mut store = Store::new(Some(link.join("config.toml")));
+        store.save(&Config::default()).unwrap();
+        assert!(root.join("dotfiles/nmrs/config.toml").is_file());
+        std::fs::remove_dir_all(root).ok();
     }
 
     #[test]

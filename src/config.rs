@@ -94,6 +94,7 @@ pub struct Layout {
     pub pages: Vec<Page>,
     pub width: f32,
     pub height: f32,
+    pub floating: Option<bool>,
 }
 
 impl Default for Layout {
@@ -103,6 +104,7 @@ impl Default for Layout {
             pages: Page::ALL.to_vec(),
             width: 920.0,
             height: 620.0,
+            floating: None,
         }
     }
 }

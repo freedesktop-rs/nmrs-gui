@@ -12,6 +12,7 @@ use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::*;
 
 use crate::backend::Backend;
+use crate::compositor::Compositor;
 use crate::config::{Config, LayoutMode, Page, Store};
 use crate::model::{Action, Reachability, State};
 use crate::theme;
@@ -60,6 +61,8 @@ pub struct NmApp {
     pub network: network::NetworkUi,
     pub appearance: crate::ui::appearance::AppearanceUi,
     pub subscriptions: Vec<Subscription>,
+    pub app_id: String,
+    pub compositor: Option<Compositor>,
     focus: FocusHandle,
 }
 
@@ -69,6 +72,7 @@ impl NmApp {
         store: Store,
         config: Config,
         page: Option<Page>,
+        app_id: String,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Self {
@@ -95,6 +99,8 @@ impl NmApp {
             pending: HashSet::new(),
             confirming: None,
             subscriptions: Vec::new(),
+            app_id,
+            compositor: Compositor::detect(),
             focus,
         };
         app.subscribe_inputs(window, cx);
@@ -107,6 +113,9 @@ impl NmApp {
         app.watch_events(window, cx);
         app.watch_files(window, cx);
         app.refresh(cx);
+        if let Some(floating) = app.config.layout.floating {
+            app.apply_floating(floating, Duration::from_millis(200), window, cx);
+        }
         if app.config.wifi.scan_on_open && !app.backend.demo {
             app.run("scan", Action::Scan, window, cx);
         }
@@ -153,6 +162,11 @@ impl NmApp {
                     if this.store.changed() {
                         match this.store.load() {
                             Ok(config) => {
+                                if config.layout.floating != this.config.layout.floating
+                                    && let Some(floating) = config.layout.floating
+                                {
+                                    this.apply_floating(floating, Duration::ZERO, window, cx);
+                                }
                                 this.appearance.sync(&config, window, cx);
                                 this.config = config;
                                 dirty = true;
@@ -266,6 +280,37 @@ impl NmApp {
 
     pub fn is_confirming(&self, key: &str) -> bool {
         self.confirming.as_deref() == Some(key)
+    }
+
+    pub fn apply_floating(
+        &self,
+        floating: bool,
+        delay: Duration,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        let Some(compositor) = self.compositor.clone() else {
+            return;
+        };
+        let app_id = self.app_id.clone();
+        let size = (self.config.layout.width, self.config.layout.height);
+        cx.spawn_in(window, async move |this, cx| {
+            cx.background_executor().timer(delay).await;
+            let result = cx
+                .background_executor()
+                .spawn(async move { compositor.set_floating(&app_id, floating, size) })
+                .await;
+            if let Err(err) = result {
+                this.update_in(cx, |_, window, cx| {
+                    window.push_notification(
+                        Notification::error(err).title("Floating not applied"),
+                        cx,
+                    );
+                })
+                .ok();
+            }
+        })
+        .detach();
     }
 
     pub fn update_config(

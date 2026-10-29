@@ -1,6 +1,7 @@
 mod app;
 mod assets;
 mod backend;
+mod compositor;
 mod config;
 mod model;
 mod theme;
@@ -79,7 +80,7 @@ fn main() -> anyhow::Result<()> {
 
             let size = size(px(config.layout.width), px(config.layout.height));
             let options = WindowOptions {
-                app_id: Some(app_id),
+                app_id: Some(app_id.clone()),
                 titlebar: Some(TitlebarOptions {
                     title: Some("nmrs".into()),
                     ..Default::default()
@@ -97,7 +98,7 @@ fn main() -> anyhow::Result<()> {
             let opened = gpui_kit::open_window(options, cx, move |window, cx| {
                 theme::apply(&config.appearance, Some(window), cx);
                 cx.new(|cx| {
-                    let app = NmApp::new(backend, store, config, page, window, cx);
+                    let app = NmApp::new(backend, store, config, page, app_id, window, cx);
                     if let Some(err) = config_error {
                         use gpui_kit::component::WindowExt;
                         window.push_notification(

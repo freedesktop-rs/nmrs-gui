@@ -467,7 +467,22 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
             ),
             5,
             cx,
-        ));
+        ))
+        .when(app.compositor.is_some(), |s| {
+            s.child(kit::setting_row(
+                "Floating window",
+                None,
+                Switch::new("floating")
+                    .checked(cfg.layout.floating.unwrap_or(false))
+                    .on_click(cx.listener(|this, on: &bool, window, cx| {
+                        let on = *on;
+                        this.update_config(window, cx, |c| c.layout.floating = Some(on));
+                        this.apply_floating(on, std::time::Duration::ZERO, window, cx);
+                    })),
+                6,
+                cx,
+            ))
+        });
 
     let min = cfg.wifi.min_strength;
     let wifi = kit::card(cx)

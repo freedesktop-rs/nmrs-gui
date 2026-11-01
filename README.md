@@ -81,6 +81,8 @@ hl.window_rule({
 hl.bind("SUPER + N", hl.dsp.exec_cmd("nmrs-gui --app-id nmrs-popup --layout compact"))
 ```
 
+The Floating window toggle (Hyprland and Sway) floats the window over IPC after it opens. A window rule like the one above floats it before the first frame.
+
 Set `appearance.opacity` below `1.0` to let the compositor's blur show through.
 
 ## Configuration
@@ -104,6 +106,7 @@ mode = "sidebar"           # sidebar, compact
 pages = ["wifi", "ethernet", "vpn", "bluetooth", "profiles", "network", "appearance"]
 width = 920.0
 height = 620.0
+floating = true            # Hyprland and Sway; omit to leave it to the compositor
 
 [wifi]
 signal = "icon"            # icon, percent, both

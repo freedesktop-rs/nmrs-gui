@@ -17,8 +17,22 @@ env:
   CARGO_PROFILE_TEST_DEBUG: 0
 
 jobs:
-  build-and-test:
-    name: Build & Test
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+  check:
+    name: Clippy & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +41,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
+          sudo apt-get install -y --no-install-recommends \
             pkg-config \
             libfontconfig-dev \
             libfreetype-dev \
@@ -39,14 +53,11 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: clippy
 
       - uses: Swatinem/rust-cache@v2
         with:
           save-if: ${{ github.ref == 'refs/heads/master' }}
-
-      - name: Check formatting
-        run: cargo fmt --check
 
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings

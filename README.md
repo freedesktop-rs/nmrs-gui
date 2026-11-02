@@ -5,6 +5,16 @@ A NetworkManager client for Linux, built on [nmrs](https://github.com/freedeskto
 [![CI](https://github.com/networkmanager-rs/nmrs-gui/actions/workflows/ci.yml/badge.svg)](https://github.com/networkmanager-rs/nmrs-gui/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/nmrs-gui)](https://crates.io/crates/nmrs-gui)
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/cd85aa04-87a2-4fc1-83d3-4a4a7ddba0cc" alt="nmrs-gui" width="100%" />
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/ee1ac25c-5ca8-4c56-b674-6d0e54f2f7f1" alt="nmrs-gui" height="320" />
+  <img src="https://github.com/user-attachments/assets/4ee6200a-50ef-4fa2-b042-eec23eb76d47" alt="nmrs-gui" height="320" />
+</p>
+
+
 ## Features
 
 - **Wi-Fi**: connect, disconnect and forget networks; WPA2, WPA3, Enhanced Open and Enterprise (PEAP, TTLS, TLS); pin a specific access point by BSSID; hidden networks; hotspot

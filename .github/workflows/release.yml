@@ -84,3 +84,25 @@ jobs:
         with:
           body: ${{ steps.changelog.outputs.notes }}
           files: artifacts/*
+
+  aur:
+    name: Publish to AUR
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set pkgver
+        run: |
+          sed -i "s/^pkgver=.*/pkgver=${GITHUB_REF_NAME#v}/; s/^pkgrel=.*/pkgrel=1/" packaging/aur/PKGBUILD
+
+      - uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
+        with:
+          pkgname: nmrs
+          pkgbuild: packaging/aur/PKGBUILD
+          updpkgsums: true
+          commit_username: Akrm Al-Hakimi
+          commit_email: alhakimiakrmj@gmail.com
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: "upgpkg: nmrs ${{ github.ref_name }}"

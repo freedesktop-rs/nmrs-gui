@@ -32,15 +32,14 @@
         nativeBuildInputs = with pkgs; [
           pkg-config
         ];
-
         buildInputs = with pkgs; [
           fontconfig
           freetype
           libxkbcommon
           wayland
           vulkan-loader
-          xorg.libX11
-          xorg.libxcb
+          libX11
+          libxcb
         ];
 
         runtimeLibs = lib.makeLibraryPath buildInputs;
@@ -77,7 +76,7 @@
           };
 
         devShell = self.devShells.${system}.default;
-
+        checks.build = self.packages.${system}.default;
         packages.default = naersk-package.buildPackage {
           pname = "nmrs-gui";
           version = cargoToml.package.version;

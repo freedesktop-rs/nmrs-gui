@@ -9,7 +9,8 @@
   libxkbcommon,
   wayland,
   vulkan-loader,
-  xorg,
+  libX11,
+  libxcb,
 }:
 
 let
@@ -19,8 +20,8 @@ let
     libxkbcommon
     wayland
     vulkan-loader
-    xorg.libX11
-    xorg.libxcb
+    libX11
+    libxcb
   ];
 in
 

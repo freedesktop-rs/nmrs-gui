@@ -3,6 +3,20 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+### Changed
+- Rewrote the interface on gpui, replacing GTK4 ([#52](https://github.com/freedesktop-rs/nmrs-gui/pull/52))
+
+### Added
+- Wi-Fi: WPA3, Enhanced Open and Enterprise (PEAP, TTLS, TLS), BSSID pinning, hidden networks, hotspot ([#52](https://github.com/freedesktop-rs/nmrs-gui/pull/52))
+- Profiles page with an IPv4/IPv6 editor and raw settings view ([#52](https://github.com/freedesktop-rs/nmrs-gui/pull/52))
+- Network page with airplane mode, radios, connectivity checks, captive portal sign-in, global DNS and interface management ([#52](https://github.com/freedesktop-rs/nmrs-gui/pull/52))
+- Bluetooth tethering, OpenVPN import and per-tunnel autoconnect ([#52](https://github.com/freedesktop-rs/nmrs-gui/pull/52))
+- `config.toml` with live reload, built-in and user JSON themes, compact layout, density, opacity and floating window options ([#52](https://github.com/freedesktop-rs/nmrs-gui/pull/52))
+- `--page`, `--layout`, `--app-id`, `--config` and `--demo` flags ([#52](https://github.com/freedesktop-rs/nmrs-gui/pull/52))
+- Option to follow the system color scheme ([#39](https://github.com/freedesktop-rs/nmrs-gui/pull/39))
+
+### Fixed
+- Systems without Wi-Fi hardware ([#38](https://github.com/freedesktop-rs/nmrs-gui/pull/38))
 
 ## [2.0.0] - 2026-11-01
 
@@ -103,7 +117,8 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 [1.5.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.1.0...v1.5.0
 [1.5.1]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.0...v1.5.1
-[Unreleased]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/nmrs-gui-v1.6.0...HEAD
+[1.6.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.1...nmrs-gui-v1.6.0
 [1.1.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.5.0-beta...v1.1.0
 [0.5.0-beta]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.4.0-beta...v0.5.0-beta
 [0.4.0-beta]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.3.0-beta...v0.4.0-beta

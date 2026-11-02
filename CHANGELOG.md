@@ -3,6 +3,8 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+
+## [2.0.1] - 2026-11-02
 ### Changed
 - Release builds use thin LTO, cutting peak build memory from 14+ GB to about 1.9 GB ([#63](https://github.com/freedesktop-rs/nmrs-gui/pull/63))
 - Minimum supported Rust version is now 1.95 ([#59](https://github.com/freedesktop-rs/nmrs-gui/pull/59))
@@ -127,7 +129,8 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 [1.5.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.1.0...v1.5.0
 [1.5.1]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.0...v1.5.1
-[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/nmrs-gui-v1.6.0...v2.0.0
 [1.6.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.1...nmrs-gui-v1.6.0
 [1.1.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.5.0-beta...v1.1.0

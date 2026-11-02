@@ -3,6 +3,16 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+### Changed
+- Release builds use thin LTO, cutting peak build memory from 14+ GB to about 1.9 GB ([#63](https://github.com/freedesktop-rs/nmrs-gui/pull/63))
+- Minimum supported Rust version is now 1.95 ([#59](https://github.com/freedesktop-rs/nmrs-gui/pull/59))
+- Update gpui-kit to 0.9.0 ([#58](https://github.com/freedesktop-rs/nmrs-gui/pull/58)), toml to 1.1.8 ([#56](https://github.com/freedesktop-rs/nmrs-gui/pull/56), [#57](https://github.com/freedesktop-rs/nmrs-gui/pull/57)) and serde_json to 1.0.154 ([#55](https://github.com/freedesktop-rs/nmrs-gui/pull/55))
+- CI skips the release build, caches from master only, and runs formatting in its own job ([#61](https://github.com/freedesktop-rs/nmrs-gui/pull/61))
+
+### Fixed
+- AUR builds being killed by the OOM killer on 16 GB machines ([#63](https://github.com/freedesktop-rs/nmrs-gui/pull/63))
+- Nix builds failing on Rust 1.94 and using deprecated `xorg.*` aliases ([#59](https://github.com/freedesktop-rs/nmrs-gui/pull/59))
+- `package.nix` reads crate hashes from `Cargo.lock`, removing the `cargoHash` fixer workflow ([#62](https://github.com/freedesktop-rs/nmrs-gui/pull/62))
 
 ## [2.0.0] - 2026-11-01
 ### Changed

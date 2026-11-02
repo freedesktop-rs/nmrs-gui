@@ -13,8 +13,7 @@ publish = true
 
 [profile.release]
 opt-level = 3
-lto = "fat"
-codegen-units = 1
+lto = "thin"
 incremental = false
 panic = "abort"
 strip = true

@@ -30,7 +30,7 @@ rustPlatform.buildRustPackage {
 
   src = ./.;
 
-  cargoHash = "sha256-ZR6uyI5ZawBm6y7JZxawaSSgb6mA4wSpqefUh4bnKuE=";
+  cargoHash = "sha256-GBBtQGZ4elOTp6VGrDf61+3pAa4nY3N9GLRjSnVZOMc=";
 
   nativeBuildInputs = [
     pkg-config

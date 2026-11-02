@@ -10,10 +10,9 @@ A NetworkManager client for Linux, built on [nmrs](https://github.com/freedeskto
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/ee1ac25c-5ca8-4c56-b674-6d0e54f2f7f1" alt="nmrs-gui" height="320" />
-  <img src="https://github.com/user-attachments/assets/4ee6200a-50ef-4fa2-b042-eec23eb76d47" alt="nmrs-gui" height="320" />
+  <img src="https://github.com/user-attachments/assets/ee1ac25c-5ca8-4c56-b674-6d0e54f2f7f1" alt="nmrs-gui network page" height="260" />
+  <img src="https://github.com/user-attachments/assets/4ee6200a-50ef-4fa2-b042-eec23eb76d47" alt="nmrs-gui appearance page" height="260" />
 </p>
-
 
 ## Features
 

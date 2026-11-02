@@ -4,12 +4,12 @@ Thanks for your interest in contributing!
 
 ## Prerequisites
 
-nmrs-gui requires GTK4 and libadwaita. Install them before building:
+nmrs-gui is built on gpui and needs a few system libraries:
 
 **Arch Linux**
 
 ```bash
-sudo pacman -S gtk4 libadwaita pkg-config
+sudo pacman -S pkgconf fontconfig freetype2 libxkbcommon libxkbcommon-x11 wayland vulkan-icd-loader
 ```
 
 **Debian / Ubuntu**
@@ -17,19 +17,19 @@ sudo pacman -S gtk4 libadwaita pkg-config
 ```bash
 sudo apt-get install -y \
   pkg-config \
-  libglib2.0-dev \
-  libgirepository1.0-dev \
-  libgdk-pixbuf2.0-dev \
-  libpango1.0-dev \
-  libcairo2-dev \
-  libgtk-4-dev \
-  libadwaita-1-dev
+  libfontconfig-dev \
+  libfreetype-dev \
+  libwayland-dev \
+  libxkbcommon-dev \
+  libxkbcommon-x11-dev \
+  libx11-xcb-dev \
+  libvulkan-dev
 ```
 
 **Fedora**
 
 ```bash
-sudo dnf install gtk4-devel libadwaita-devel pkg-config
+sudo dnf install pkgconf fontconfig-devel freetype-devel libxkbcommon-devel libxkbcommon-x11-devel wayland-devel vulkan-loader-devel
 ```
 
 **Nix**
@@ -43,7 +43,10 @@ nix develop
 ```bash
 cargo build
 cargo test
+cargo run -- --demo
 ```
+
+`--demo` runs the interface against sample data, so UI work never touches your live connections.
 
 ## Code Style
 

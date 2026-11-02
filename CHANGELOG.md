@@ -3,6 +3,8 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+
+## [2.0.0] - 2026-11-01
 ### Changed
 - Rewrote the interface on gpui, replacing GTK4 ([#52](https://github.com/freedesktop-rs/nmrs-gui/pull/52))
 
@@ -17,8 +19,6 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ### Fixed
 - Systems without Wi-Fi hardware ([#38](https://github.com/freedesktop-rs/nmrs-gui/pull/38))
-
-## [2.0.0] - 2026-11-01
 
 ## [1.6.0] - 2026-05-20
 ### Added
@@ -117,7 +117,8 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 [1.5.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.1.0...v1.5.0
 [1.5.1]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.0...v1.5.1
-[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/nmrs-gui-v1.6.0...HEAD
+[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/nmrs-gui-v1.6.0...v2.0.0
 [1.6.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.1...nmrs-gui-v1.6.0
 [1.1.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.5.0-beta...v1.1.0
 [0.5.0-beta]: https://github.com/networkmanager-rs/nmrs-gui/compare/v0.4.0-beta...v0.5.0-beta

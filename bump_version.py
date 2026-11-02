@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 CARGO_TOML = ROOT / "Cargo.toml"
 CHANGELOG = ROOT / "CHANGELOG.md"
-REPO = "https://github.com/networkmanager-rs/nmrs-gui"
+REPO = "https://github.com/freedesktop-rs/nmrs-gui"
 
 
 def current_version() -> str:
@@ -43,11 +43,14 @@ def bump_changelog(old: str, new: str) -> None:
     )
 
     # Update comparison links
-    old_unreleased = f"[Unreleased]: {REPO}/compare/v{old}...HEAD"
+    match = re.search(r"^\[Unreleased\]: .*/compare/(\S+)\.\.\.HEAD$", text, re.MULTILINE)
+    if not match:
+        sys.exit("Could not find the [Unreleased] compare link in CHANGELOG.md")
+    previous = match.group(1)
     new_unreleased = f"[Unreleased]: {REPO}/compare/v{new}...HEAD"
-    new_entry = f"[{new}]: {REPO}/compare/v{old}...v{new}"
+    new_entry = f"[{new}]: {REPO}/compare/{previous}...v{new}"
 
-    text = text.replace(old_unreleased, f"{new_unreleased}\n{new_entry}", 1)
+    text = text.replace(match.group(0), f"{new_unreleased}\n{new_entry}", 1)
 
     CHANGELOG.write_text(text)
     print(f"  CHANGELOG.md: promoted [Unreleased] → [{new}]")
@@ -78,7 +81,8 @@ def main() -> None:
     bump_changelog(old, new)
 
     if args.tag:
-        run(["git", "add", "Cargo.toml", "CHANGELOG.md"])
+        run(["cargo", "update", "-p", "nmrs-gui", "--offline"])
+        run(["git", "add", "Cargo.toml", "Cargo.lock", "CHANGELOG.md"])
         run(["git", "commit", "-m", f"chore: release v{new}"])
         run(["git", "tag", f"v{new}"])
         print(f"  Tagged v{new}. Push with: git push && git push origin v{new}")

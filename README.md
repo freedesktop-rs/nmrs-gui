@@ -6,13 +6,83 @@ A NetworkManager client for Linux, built on [nmrs](https://github.com/freedeskto
 [![Crates.io](https://img.shields.io/crates/v/nmrs-gui)](https://crates.io/crates/nmrs-gui)
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/cd85aa04-87a2-4fc1-83d3-4a4a7ddba0cc" alt="nmrs-gui" width="100%" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark-wifi.png">
+    <img src="assets/readme/light-wifi.png" alt="Wi-Fi page" width="100%">
+  </picture>
 </p>
 
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/ee1ac25c-5ca8-4c56-b674-6d0e54f2f7f1" alt="nmrs-gui network page" height="260" />
-  <img src="https://github.com/user-attachments/assets/4ee6200a-50ef-4fa2-b042-eec23eb76d47" alt="nmrs-gui appearance page" height="260" />
-</p>
+<table>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark-profiles.png">
+        <img src="assets/readme/light-profiles.png" alt="Profiles page">
+      </picture>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark-network.png">
+        <img src="assets/readme/light-network.png" alt="Network page">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Profiles</sub></td>
+    <td align="center"><sub>Network</sub></td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark-vpn.png">
+        <img src="assets/readme/light-vpn.png" alt="VPN page">
+      </picture>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="assets/readme/dark-appearance.png">
+        <img src="assets/readme/light-appearance.png" alt="Appearance page">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>VPN</sub></td>
+    <td align="center"><sub>Appearance</sub></td>
+  </tr>
+</table>
+
+The compact layout, in a few of the built-in themes. Each one is a `config.toml` away; see [Configuration](#configuration).
+
+<table>
+  <tr>
+    <td width="20%"><img src="assets/readme/theme-mocha.png" alt="Catppuccin Mocha"></td>
+    <td width="20%"><img src="assets/readme/theme-nord.png" alt="Nord"></td>
+    <td width="20%"><img src="assets/readme/theme-tokyo.png" alt="Tokyo Night"></td>
+    <td width="20%"><img src="assets/readme/theme-gruvbox.png" alt="Gruvbox Dark"></td>
+    <td width="20%"><img src="assets/readme/theme-rose.png" alt="Rosé Pine"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Catppuccin Mocha</sub></td>
+    <td align="center"><sub>Nord · radius 4</sub></td>
+    <td align="center"><sub>Tokyo Night · compact density</sub></td>
+    <td align="center"><sub>Gruvbox Dark · custom accent</sub></td>
+    <td align="center"><sub>Rosé Pine · radius 14</sub></td>
+  </tr>
+  <tr>
+    <td width="20%"><img src="assets/readme/theme-latte.png" alt="Catppuccin Latte"></td>
+    <td width="20%"><img src="assets/readme/theme-adwlight.png" alt="Adwaita Light"></td>
+    <td width="20%"><img src="assets/readme/theme-gruvlight.png" alt="Gruvbox Light"></td>
+    <td width="20%"><img src="assets/readme/theme-dawn.png" alt="Rosé Pine Dawn"></td>
+    <td width="20%"><img src="assets/readme/theme-dracula.png" alt="Dracula"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Catppuccin Latte</sub></td>
+    <td align="center"><sub>Adwaita Light</sub></td>
+    <td align="center"><sub>Gruvbox Light · custom accent</sub></td>
+    <td align="center"><sub>Rosé Pine Dawn · radius 14</sub></td>
+    <td align="center"><sub>Dracula · spacious density</sub></td>
+  </tr>
+</table>
 
 ## Features
 

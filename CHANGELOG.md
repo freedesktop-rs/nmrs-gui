@@ -3,6 +3,8 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+
+## [2.1.0] - 2026-11-03
 ### Added
 - Keyboard navigation: `Tab` reaches every sidebar item and list row, `↑`/`↓` move between rows, and `Enter` activates the focused one ([#67](https://github.com/freedesktop-rs/nmrs-gui/pull/67))
 
@@ -131,7 +133,8 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 [1.5.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.1.0...v1.5.0
 [1.5.1]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.0...v1.5.1
-[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/nmrs-gui-v1.6.0...v2.0.0
 [1.6.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.1...nmrs-gui-v1.6.0

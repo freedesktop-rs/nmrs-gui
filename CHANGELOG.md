@@ -3,6 +3,8 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+### Added
+- Keyboard navigation: `Tab` reaches every sidebar item and list row, `↑`/`↓` move between rows, and `Enter` activates the focused one ([#67](https://github.com/freedesktop-rs/nmrs-gui/pull/67))
 
 ## [2.0.1] - 2026-11-02
 ### Changed

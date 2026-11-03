@@ -310,8 +310,8 @@ fn relative(ts: u64) -> Option<String> {
     })
 }
 
-fn render_list(app: &NmApp, cx: &mut Context<NmApp>) -> Div {
-    let theme = cx.theme();
+fn render_list(app: &NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> Div {
+    let theme = cx.theme().clone();
     let Some(state) = app.state.as_ref() else {
         return div();
     };
@@ -354,8 +354,8 @@ fn render_list(app: &NmApp, cx: &mut Context<NmApp>) -> Div {
                 .children(items.into_iter().map(|p| {
                     let uuid = p.uuid.clone();
                     let active = selected.as_deref() == Some(p.uuid.as_str());
-                    div()
-                        .id(SharedString::from(format!("prof-{}", p.uuid)))
+                    let id = SharedString::from(format!("prof-{}", p.uuid));
+                    kit::focusable(div().id(id.clone()), id, window, cx)
                         .h_flex()
                         .items_center()
                         .gap_2p5()
@@ -755,7 +755,7 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
                     .small()
                     .prefix(Icon::new(IconName::Search).size_3p5()),
             )
-            .child(render_list(app, cx))
+            .child(render_list(app, window, cx))
             .into_any_element();
     }
 
@@ -798,7 +798,7 @@ pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> 
                         .flex_1()
                         .min_h_0()
                         .overflow_y_scrollbar()
-                        .child(div().px_3().pb_4().child(render_list(app, cx))),
+                        .child(div().px_3().pb_4().child(render_list(app, window, cx))),
                 ),
         )
         .child(

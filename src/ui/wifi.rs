@@ -321,8 +321,14 @@ fn signal(app: &NmApp, net: &WifiNetwork, cx: &App) -> AnyElement {
         .into_any_element()
 }
 
-fn network_row(app: &NmApp, net: &WifiNetwork, index: usize, cx: &mut Context<NmApp>) -> Div {
-    let theme = cx.theme();
+fn network_row(
+    app: &NmApp,
+    net: &WifiNetwork,
+    index: usize,
+    window: &mut Window,
+    cx: &mut Context<NmApp>,
+) -> Div {
+    let theme = cx.theme().clone();
     let ssid = net.ssid.clone();
     let expanded = app.wifi.expanded.as_deref() == Some(net.ssid.as_str());
     let pending = app.is_pending(&format!("wifi:{}", net.ssid));
@@ -349,6 +355,7 @@ fn network_row(app: &NmApp, net: &WifiNetwork, index: usize, cx: &mut Context<Nm
     let row = kit::row(
         SharedString::from(format!("net-{}", net.ssid)),
         app.row_height(),
+        window,
         cx,
     )
     .cursor_pointer()
@@ -378,11 +385,16 @@ fn network_row(app: &NmApp, net: &WifiNetwork, index: usize, cx: &mut Context<Nm
         .v_flex()
         .map(kit::divided(index, cx))
         .child(row)
-        .when(expanded, |s| s.child(expanded_panel(app, net, cx)))
+        .when(expanded, |s| s.child(expanded_panel(app, net, window, cx)))
 }
 
-fn access_points(app: &NmApp, net: &WifiNetwork, cx: &mut Context<NmApp>) -> Div {
-    let theme = cx.theme();
+fn access_points(
+    app: &NmApp,
+    net: &WifiNetwork,
+    window: &mut Window,
+    cx: &mut Context<NmApp>,
+) -> Div {
+    let theme = cx.theme().clone();
     let selected = app.wifi.bssid.clone();
     let mut aps = net.access_points.clone();
     aps.sort_by_key(|a| std::cmp::Reverse(a.strength));
@@ -401,8 +413,8 @@ fn access_points(app: &NmApp, net: &WifiNetwork, cx: &mut Context<NmApp>) -> Div
         .children(aps.into_iter().map(|ap| {
             let bssid = ap.bssid.clone();
             let picked = selected.as_deref() == Some(ap.bssid.as_str());
-            div()
-                .id(SharedString::from(format!("ap-{}", ap.bssid)))
+            let id = SharedString::from(format!("ap-{}", ap.bssid));
+            kit::focusable(div().id(id.clone()), id, window, cx)
                 .h_flex()
                 .items_center()
                 .gap_3()
@@ -457,7 +469,12 @@ fn access_points(app: &NmApp, net: &WifiNetwork, cx: &mut Context<NmApp>) -> Div
         }))
 }
 
-fn expanded_panel(app: &NmApp, net: &WifiNetwork, cx: &mut Context<NmApp>) -> Div {
+fn expanded_panel(
+    app: &NmApp,
+    net: &WifiNetwork,
+    window: &mut Window,
+    cx: &mut Context<NmApp>,
+) -> Div {
     let theme = cx.theme();
     let ssid = net.ssid.clone();
     let pending = app.is_pending(&format!("wifi:{}", net.ssid));
@@ -487,7 +504,7 @@ fn expanded_panel(app: &NmApp, net: &WifiNetwork, cx: &mut Context<NmApp>) -> Di
     }
 
     if net.access_points.len() > 1 || app.config.wifi.show_bssid {
-        panel = panel.child(access_points(app, net, cx));
+        panel = panel.child(access_points(app, net, window, cx));
     }
 
     let needs_form = !net.known && !net.active;
@@ -706,7 +723,7 @@ fn hotspot_form(app: &NmApp, cx: &mut Context<NmApp>) -> Div {
     )
 }
 
-pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) -> AnyElement {
+pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> AnyElement {
     let Some(state) = app.state.clone() else {
         return div().into_any_element();
     };
@@ -863,7 +880,7 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
                 active
                     .iter()
                     .enumerate()
-                    .map(|(i, n)| network_row(app, n, i, cx)),
+                    .map(|(i, n)| network_row(app, n, i, window, cx)),
             ),
         );
     }
@@ -873,7 +890,7 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
                 known
                     .iter()
                     .enumerate()
-                    .map(|(i, n)| network_row(app, n, i, cx)),
+                    .map(|(i, n)| network_row(app, n, i, window, cx)),
             ),
         );
     }
@@ -883,7 +900,7 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
                 other
                     .iter()
                     .enumerate()
-                    .map(|(i, n)| network_row(app, n, i, cx)),
+                    .map(|(i, n)| network_row(app, n, i, window, cx)),
             ),
         );
     }

@@ -236,8 +236,14 @@ fn wireguard_form(app: &NmApp, cx: &mut Context<NmApp>) -> Div {
     )
 }
 
-fn vpn_row(app: &NmApp, vpn: &Vpn, index: usize, cx: &mut Context<NmApp>) -> Div {
-    let theme = cx.theme();
+fn vpn_row(
+    app: &NmApp,
+    vpn: &Vpn,
+    index: usize,
+    window: &mut Window,
+    cx: &mut Context<NmApp>,
+) -> Div {
+    let theme = cx.theme().clone();
     let up = vpn.state.is_up();
     let busy = vpn.state.is_busy();
     let key = format!("vpn:{}", vpn.uuid);
@@ -259,6 +265,7 @@ fn vpn_row(app: &NmApp, vpn: &Vpn, index: usize, cx: &mut Context<NmApp>) -> Div
     let row = kit::row(
         SharedString::from(format!("vpn-{}", vpn.uuid)),
         app.row_height(),
+        window,
         cx,
     )
     .cursor_pointer()
@@ -388,7 +395,7 @@ fn vpn_details(app: &NmApp, vpn: &Vpn, cx: &mut Context<NmApp>) -> Div {
         )
 }
 
-pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) -> AnyElement {
+pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> AnyElement {
     let Some(state) = app.state.clone() else {
         return div().into_any_element();
     };
@@ -454,6 +461,12 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
 
     let mut vpns = state.vpns.clone();
     vpns.sort_by_key(|v| (!v.state.is_up(), v.name.to_lowercase()));
-    body.child(kit::card(cx).children(vpns.iter().enumerate().map(|(i, v)| vpn_row(app, v, i, cx))))
-        .into_any_element()
+    body.child(
+        kit::card(cx).children(
+            vpns.iter()
+                .enumerate()
+                .map(|(i, v)| vpn_row(app, v, i, window, cx)),
+        ),
+    )
+    .into_any_element()
 }

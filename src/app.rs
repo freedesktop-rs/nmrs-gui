@@ -16,12 +16,13 @@ use crate::compositor::Compositor;
 use crate::config::{Config, LayoutMode, Page, Store};
 use crate::model::{Action, Reachability, State};
 use crate::theme;
-use crate::ui::{network, profiles, vpn, wifi};
+use crate::ui::{kit, network, profiles, vpn, wifi};
 
 actions!(
     nmrs,
     [
-        Quit, Dismiss, Refresh, NextPage, PrevPage, Page1, Page2, Page3, Page4, Page5, Page6, Page7
+        Quit, Dismiss, Refresh, NextPage, PrevPage, FocusNext, FocusPrev, Page1, Page2, Page3,
+        Page4, Page5, Page6, Page7
     ]
 );
 
@@ -42,6 +43,8 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new("alt-5", Page5, Some(CONTEXT)),
         KeyBinding::new("alt-6", Page6, Some(CONTEXT)),
         KeyBinding::new("alt-7", Page7, Some(CONTEXT)),
+        KeyBinding::new("down", FocusNext, Some(kit::ROW_CONTEXT)),
+        KeyBinding::new("up", FocusPrev, Some(kit::ROW_CONTEXT)),
     ]);
 }
 
@@ -334,6 +337,7 @@ impl NmApp {
             if page == Page::Profiles {
                 profiles::ensure_selection(self, window, cx);
             }
+            window.focus(&self.focus, cx);
             cx.notify();
         }
     }
@@ -393,11 +397,17 @@ impl NmApp {
         (state.connectivity.state, primary)
     }
 
-    fn render_nav_item(&self, page: Page, compact: bool, cx: &mut Context<Self>) -> AnyElement {
-        let theme = cx.theme();
+    fn render_nav_item(
+        &self,
+        page: Page,
+        compact: bool,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) -> AnyElement {
+        let theme = cx.theme().clone();
         let active = self.page == page;
-        let item = div()
-            .id(SharedString::from(format!("nav-{}", page.label())))
+        let id = SharedString::from(format!("nav-{}", page.label()));
+        let item = kit::focusable(div().id(id.clone()), id, window, cx)
             .h_flex()
             .items_center()
             .gap_2p5()
@@ -474,7 +484,7 @@ impl NmApp {
             .into_any_element()
     }
 
-    fn render_sidebar(&self, cx: &mut Context<Self>) -> AnyElement {
+    fn render_sidebar(&self, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
         let theme = cx.theme().clone();
         let pages = self.config.layout.pages.clone();
         div()
@@ -491,11 +501,11 @@ impl NmApp {
                 pages
                     .into_iter()
                     .filter(|p| *p != Page::Appearance)
-                    .map(|p| self.render_nav_item(p, false, cx)),
+                    .map(|p| self.render_nav_item(p, false, window, cx)),
             )
             .child(div().flex_1())
             .when(self.config.layout.pages.contains(&Page::Appearance), |s| {
-                s.child(self.render_nav_item(Page::Appearance, false, cx))
+                s.child(self.render_nav_item(Page::Appearance, false, window, cx))
             })
             .child(
                 div()
@@ -508,7 +518,7 @@ impl NmApp {
             .into_any_element()
     }
 
-    fn render_topbar(&self, cx: &mut Context<Self>) -> AnyElement {
+    fn render_topbar(&self, window: &mut Window, cx: &mut Context<Self>) -> AnyElement {
         let theme = cx.theme().clone();
         let pages = self.config.layout.pages.clone();
         div()
@@ -520,7 +530,11 @@ impl NmApp {
             .bg(theme.sidebar)
             .border_b_1()
             .border_color(theme.sidebar_border)
-            .children(pages.into_iter().map(|p| self.render_nav_item(p, true, cx)))
+            .children(
+                pages
+                    .into_iter()
+                    .map(|p| self.render_nav_item(p, true, window, cx)),
+            )
             .child(div().flex_1())
             .child(self.render_status(true, cx))
             .into_any_element()
@@ -620,6 +634,8 @@ impl Render for NmApp {
             }))
             .on_action(cx.listener(|this, _: &NextPage, w, cx| this.step_page(1, w, cx)))
             .on_action(cx.listener(|this, _: &PrevPage, w, cx| this.step_page(-1, w, cx)))
+            .on_action(|_: &FocusNext, window, cx| window.focus_next(cx))
+            .on_action(|_: &FocusPrev, window, cx| window.focus_prev(cx))
             .on_action(cx.listener(|this, _: &Page1, w, cx| this.go_index(0, w, cx)))
             .on_action(cx.listener(|this, _: &Page2, w, cx| this.go_index(1, w, cx)))
             .on_action(cx.listener(|this, _: &Page3, w, cx| this.go_index(2, w, cx)))
@@ -634,9 +650,13 @@ impl Render for NmApp {
             .text_size(theme.font_size)
             .map(|s| {
                 if compact {
-                    s.v_flex().child(self.render_topbar(cx)).child(content)
+                    s.v_flex()
+                        .child(self.render_topbar(window, cx))
+                        .child(content)
                 } else {
-                    s.h_flex().child(self.render_sidebar(cx)).child(content)
+                    s.h_flex()
+                        .child(self.render_sidebar(window, cx))
+                        .child(content)
                 }
             })
     }

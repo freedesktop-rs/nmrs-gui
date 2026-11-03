@@ -9,7 +9,7 @@ use crate::model::Action;
 use crate::model::*;
 use crate::ui::kit;
 
-pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) -> AnyElement {
+pub fn render(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) -> AnyElement {
     let Some(state) = app.state.clone() else {
         return div().into_any_element();
     };
@@ -92,6 +92,7 @@ pub fn render(app: &mut NmApp, _window: &mut Window, cx: &mut Context<NmApp>) ->
                     kit::row(
                         SharedString::from(format!("bt-{}", dev.address)),
                         height,
+                        window,
                         cx,
                     )
                     .child(kit::badge_icon(

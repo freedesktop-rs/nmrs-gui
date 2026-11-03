@@ -55,16 +55,40 @@ pub fn divided(index: usize, cx: &App) -> impl Fn(Div) -> Div {
     }
 }
 
-pub fn row(id: impl Into<ElementId>, height: Pixels, cx: &App) -> Stateful<Div> {
-    let theme = cx.theme();
-    div()
-        .id(id)
+pub const ROW_CONTEXT: &str = "NmrsRow";
+
+pub fn focusable(
+    el: Stateful<Div>,
+    id: impl Into<ElementId>,
+    window: &mut Window,
+    cx: &mut App,
+) -> Stateful<Div> {
+    let primary = cx.theme().primary;
+    let handle = window
+        .use_keyed_state(id, cx, |_, cx| cx.focus_handle())
+        .read(cx)
+        .clone();
+    el.key_context(ROW_CONTEXT)
+        .track_focus(&handle.tab_index(0).tab_stop(true))
+        .focus_visible(|s| s.bg(primary.opacity(0.18)))
+}
+
+pub fn row(
+    id: impl Into<ElementId> + Clone,
+    height: Pixels,
+    window: &mut Window,
+    cx: &mut App,
+) -> Stateful<Div> {
+    let accent = cx.theme().accent;
+    let row = div()
+        .id(id.clone())
         .h_flex()
         .items_center()
         .gap_3()
         .min_h(height)
         .px_3p5()
-        .hover(|s| s.bg(theme.accent.opacity(0.45)))
+        .hover(|s| s.bg(accent.opacity(0.45)));
+    focusable(row, id, window, cx)
 }
 
 pub fn title_block(title: impl Into<SharedString>, subtitle: Option<String>, cx: &App) -> Div {

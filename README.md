@@ -144,6 +144,9 @@ One instance runs per app id. Use a separate `--app-id` to run, for example, a c
 | `Alt+1` … `Alt+7`               | Jump to page                                 |
 | `Ctrl+Tab` / `Ctrl+Shift+Tab`   | Next / previous page                         |
 | `Ctrl+R`, `F5`                  | Refresh (scans on the Wi-Fi page)            |
+| `Tab` / `Shift+Tab`             | Move focus through the sidebar, list rows and controls |
+| `↑` / `↓`                       | Previous / next row                          |
+| `Enter`, `Space`                | Activate the focused row or button           |
 | `Enter`                         | Connect from a password or network name field |
 | `Esc`                           | Close the open form, or quit when none is open |
 | `Ctrl+Q`                        | Quit                                         |

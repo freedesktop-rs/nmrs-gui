@@ -63,7 +63,22 @@ fn device_card(app: &NmApp, dev: &WiredDevice, cx: &mut Context<NmApp>) -> Div {
                 .child(kit::badge_icon(IconName::EthernetPort, up, cx))
                 .child(kit::title_block(dev.interface.clone(), Some(subtitle), cx))
                 .when(up, |s| {
-                    s.child(
+                    let reconnect_iface = iface.clone();
+                    s.when_some(uuid.clone(), |s, uuid| {
+                        s.child(
+                            kit::plain("wired-reconnect", "Reconnect")
+                                .loading(pending)
+                                .on_click(cx.listener(move |this, _, window, cx| {
+                                    this.run(
+                                        format!("wired:{reconnect_iface}"),
+                                        Action::Reconnect(uuid.clone(), reconnect_iface.clone()),
+                                        window,
+                                        cx,
+                                    );
+                                })),
+                        )
+                    })
+                    .child(
                         kit::plain("wired-down", "Disconnect")
                             .loading(pending)
                             .on_click(cx.listener(move |this, _, window, cx| {

@@ -31,4 +31,8 @@ package() {
   ln -s nmrs-gui "$pkgdir/usr/bin/nmrs"
   install -Dm644 nmrs.desktop "$pkgdir/usr/share/applications/nmrs.desktop"
   install -Dm644 LICENSE-MIT "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm755 contrib/waybar/nmrs-status "$pkgdir/usr/share/nmrs/contrib/waybar/nmrs-status"
+  install -Dm644 contrib/waybar/config.jsonc "$pkgdir/usr/share/nmrs/contrib/waybar/config.jsonc"
+  install -Dm644 contrib/quickshell/Nmrs.qml "$pkgdir/usr/share/nmrs/contrib/quickshell/Nmrs.qml"
+  install -Dm644 contrib/README.md "$pkgdir/usr/share/nmrs/contrib/README.md"
 }

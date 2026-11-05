@@ -387,13 +387,53 @@ fn load_user(stamp: &[(PathBuf, Option<SystemTime>)]) -> (Vec<Rc<ThemeConfig>>, 
     (themes, errors)
 }
 
-pub fn load(cx: &mut App) -> Vec<String> {
+fn catalog() -> (Catalog, Vec<String>) {
     let stamp = scan(&crate::config::themes_dir());
     let mut themes = builtin();
     let (user, errors) = load_user(&stamp);
     themes.extend(user);
-    cx.set_global(Catalog { themes, stamp });
+    (Catalog { themes, stamp }, errors)
+}
+
+pub fn load(cx: &mut App) -> Vec<String> {
+    let (catalog, errors) = catalog();
+    cx.set_global(catalog);
     errors
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
+pub struct Colors {
+    pub name: String,
+    pub mode: &'static str,
+    pub background: String,
+    pub foreground: String,
+    pub primary: String,
+    pub muted: String,
+    pub accent: String,
+    pub border: String,
+}
+
+pub fn colors_for(appearance: &Appearance) -> Option<Colors> {
+    let (catalog, _) = catalog();
+    let name = resolve_name(appearance, true);
+    let config = catalog.get(&name).or_else(|| catalog.get("nmrs Dark"))?;
+    let config = with_overrides(&config, appearance);
+    let value = serde_json::to_value(&config.colors).ok()?;
+    let get = |key: &str| value.get(key).and_then(Value::as_str).map(str::to_string);
+    Some(Colors {
+        name: config.name.to_string(),
+        mode: if config.mode.is_dark() {
+            "dark"
+        } else {
+            "light"
+        },
+        background: get("background")?,
+        foreground: get("foreground")?,
+        primary: get("primary.background")?,
+        muted: get("muted.foreground")?,
+        accent: get("accent.background")?,
+        border: get("border")?,
+    })
 }
 
 pub fn reload_if_changed(cx: &mut App) -> Option<Vec<String>> {

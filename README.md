@@ -135,11 +135,17 @@ Options:
       --show             Show and raise the running window
       --hide             Hide the running window, keeping it ready
       --quit             Quit the running instance
+      --status           Print network state as JSON and exit
+      --watch            With --status, print a line on every change
   -V, --version          Print version and build hash
   -h, --help             Print help
 ```
 
 One instance runs per app id. Launching `nmrs-gui` again raises the existing window; `--toggle`, `--show`, `--hide` and `--quit` control it. Use a separate `--app-id` to run, for example, a compact popup alongside the full window.
+
+### Status
+
+`nmrs-gui --status` prints one JSON object with connectivity, the primary connection, the active Wi-Fi network, wired links, VPNs, radios and the resolved theme colors; `--watch` keeps printing a line whenever something changes. Bars and widgets read it instead of polling `nmcli`.
 
 ### Keybindings
 

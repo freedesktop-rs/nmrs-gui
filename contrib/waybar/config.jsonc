@@ -1,0 +1,10 @@
+{
+  "custom/nmrs": {
+    "exec": "/usr/share/nmrs/contrib/waybar/nmrs-status",
+    "return-type": "json",
+    "format": "{}",
+    "on-click": "nmrs-gui --toggle --app-id nmrs-popup --layout compact",
+    "on-click-right": "nmrs-gui --toggle --page vpn --app-id nmrs-popup --layout compact",
+    "tooltip": true
+  }
+}

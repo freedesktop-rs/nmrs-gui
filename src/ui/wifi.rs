@@ -547,15 +547,33 @@ fn expanded_panel(
         .map(|s| {
             if net.active {
                 let profile = net.profile.clone();
-                s.child(kit::plain("disconnect", "Disconnect").on_click(cx.listener(
-                    move |this, _, window, cx| {
-                        let action = match profile.clone() {
-                            Some(uuid) => Action::Deactivate(uuid),
-                            None => Action::DisconnectDevice(iface.clone()),
-                        };
-                        this.run(format!("wifi:{ssid}"), action, window, cx);
-                    },
-                )))
+                let reconnect_ssid = ssid.clone();
+                let reconnect_iface = iface.clone();
+                s.when_some(profile.clone(), |s, uuid| {
+                    s.child(
+                        kit::plain("reconnect", "Reconnect")
+                            .loading(pending)
+                            .on_click(cx.listener(move |this, _, window, cx| {
+                                this.run(
+                                    format!("wifi:{reconnect_ssid}"),
+                                    Action::Reconnect(uuid.clone(), reconnect_iface.clone()),
+                                    window,
+                                    cx,
+                                );
+                            })),
+                    )
+                })
+                .child(
+                    kit::plain("disconnect", "Disconnect")
+                        .loading(pending)
+                        .on_click(cx.listener(move |this, _, window, cx| {
+                            let action = match profile.clone() {
+                                Some(uuid) => Action::Deactivate(uuid),
+                                None => Action::DisconnectDevice(iface.clone()),
+                            };
+                            this.run(format!("wifi:{ssid}"), action, window, cx);
+                        })),
+                )
             } else {
                 s.child(kit::primary("connect", "Connect", pending).on_click(
                     cx.listener(move |this, _, window, cx| connect(this, &ssid, window, cx)),

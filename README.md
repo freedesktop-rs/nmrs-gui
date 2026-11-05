@@ -131,11 +131,15 @@ Options:
       --config <CONFIG>  Path to an alternative config file
       --app-id <APP_ID>  Wayland app id and instance name [default: nmrs]
       --demo             Run against sample data instead of NetworkManager
+      --toggle           Show or hide the running window
+      --show             Show and raise the running window
+      --hide             Hide the running window, keeping it ready
+      --quit             Quit the running instance
   -V, --version          Print version and build hash
   -h, --help             Print help
 ```
 
-One instance runs per app id. Use a separate `--app-id` to run, for example, a compact popup alongside the full window.
+One instance runs per app id and listens on `$XDG_RUNTIME_DIR/nmrs/<app-id>.sock`. Launching `nmrs-gui` again while it runs raises the existing window instead of starting a second one; `--toggle`, `--show`, `--hide` and `--quit` talk to it the same way, and `--page` combines with `--toggle` or `--show`. A hidden instance stays resident so the next `--toggle` is instant; closing the window or pressing `Esc` quits it. Use a separate `--app-id` to run, for example, a compact popup alongside the full window.
 
 ### Keybindings
 
@@ -160,7 +164,7 @@ hl.window_rule({
   size = { 400, 560 },
 })
 
-hl.bind("SUPER + N", hl.dsp.exec_cmd("nmrs-gui --app-id nmrs-popup --layout compact"))
+hl.bind("SUPER + N", hl.dsp.exec_cmd("nmrs-gui --toggle --app-id nmrs-popup --layout compact"))
 ```
 
 The Floating window toggle (Hyprland and Sway) floats the window over IPC after it opens. A window rule like the one above floats it before the first frame.

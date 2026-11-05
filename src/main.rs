@@ -5,6 +5,7 @@ mod compositor;
 mod config;
 mod ipc;
 mod model;
+mod status;
 mod theme;
 mod ui;
 
@@ -52,6 +53,14 @@ struct Args {
     hide: bool,
     #[arg(long, group = "command", help = "Quit the running instance")]
     quit: bool,
+    #[arg(long, help = "Print network state as JSON and exit")]
+    status: bool,
+    #[arg(
+        long,
+        requires = "status",
+        help = "With --status, print a line on every change"
+    )]
+    watch: bool,
 }
 
 impl Args {
@@ -201,6 +210,10 @@ fn main() -> anyhow::Result<()> {
             env!("GIT_HASH")
         );
         return Ok(());
+    }
+
+    if args.status {
+        return status::run(args.demo, args.config, args.watch);
     }
 
     let command = args.command();

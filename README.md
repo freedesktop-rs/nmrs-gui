@@ -139,7 +139,7 @@ Options:
   -h, --help             Print help
 ```
 
-One instance runs per app id and listens on `$XDG_RUNTIME_DIR/nmrs/<app-id>.sock`. Launching `nmrs-gui` again while it runs raises the existing window instead of starting a second one; `--toggle`, `--show`, `--hide` and `--quit` talk to it the same way, and `--page` combines with `--toggle` or `--show`. A hidden instance stays resident so the next `--toggle` is instant; closing the window or pressing `Esc` quits it. Use a separate `--app-id` to run, for example, a compact popup alongside the full window.
+One instance runs per app id. Launching `nmrs-gui` again raises the existing window; `--toggle`, `--show`, `--hide` and `--quit` control it. Use a separate `--app-id` to run, for example, a compact popup alongside the full window.
 
 ### Keybindings
 

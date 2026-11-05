@@ -36,7 +36,11 @@ struct Args {
     app_id: String,
     #[arg(long)]
     demo: bool,
-    #[arg(long, group = "command", help = "Show or hide the running window")]
+    #[arg(
+        long,
+        group = "command",
+        help = "Show or hide the running window; with --page, switch to that page first"
+    )]
     toggle: bool,
     #[arg(long, group = "command", help = "Show and raise the running window")]
     show: bool,
@@ -91,6 +95,9 @@ impl Launcher {
                 None => "ok".into(),
             },
             Command::Toggle(page) => match self.window(cx) {
+                Some(handle) if page.is_some_and(|p| self.page(cx) != Some(p)) => {
+                    self.raise(handle, page, cx)
+                }
                 Some(handle) => self.hide(handle, cx),
                 None => self.open(page, cx),
             },
@@ -99,6 +106,11 @@ impl Launcher {
                 "ok".into()
             }
         }
+    }
+
+    fn page(&self, cx: &App) -> Option<Page> {
+        let app = self.app.borrow().as_ref().and_then(|app| app.upgrade())?;
+        Some(app.read(cx).page)
     }
 
     fn raise(&self, handle: AnyWindowHandle, page: Option<Page>, cx: &mut App) -> String {

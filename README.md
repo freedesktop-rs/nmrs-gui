@@ -131,7 +131,7 @@ Options:
       --config <CONFIG>  Path to an alternative config file
       --app-id <APP_ID>  Wayland app id and instance name [default: nmrs]
       --demo             Run against sample data instead of NetworkManager
-      --toggle           Show or hide the running window
+      --toggle           Show or hide the running window; with --page, switch to that page first
       --show             Show and raise the running window
       --hide             Hide the running window, keeping it ready
       --quit             Quit the running instance

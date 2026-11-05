@@ -68,7 +68,7 @@ impl Service for Demo {
 
 fn apply(state: &mut State, action: Action) -> Result<()> {
     match action {
-        Action::Scan | Action::CheckConnectivity => {}
+        Action::Scan | Action::CheckConnectivity | Action::Reconnect(..) => {}
         Action::SetWifi(on) => {
             state.radios.wifi.enabled = on;
             if !on {

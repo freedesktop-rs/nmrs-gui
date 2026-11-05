@@ -522,6 +522,10 @@ async fn execute(nm: &NetworkManager, action: Action) -> Result<()> {
                 .await?
         }
         Action::Deactivate(uuid) => nm.disconnect_by_uuid(&uuid).await?,
+        Action::Reconnect(uuid, iface) => {
+            nm.connect_by_uuid(&uuid, ConnectByUuidConfig::default().with_interface(&iface))
+                .await?
+        }
         Action::DisconnectDevice(interface) => nm.disconnect(Some(&interface)).await?,
         Action::DeleteProfile(uuid) => nm.delete_saved_connection(&uuid).await?,
         Action::UpdateProfile(uuid, edit) => {

@@ -68,7 +68,15 @@ impl Service for Demo {
 
 fn apply(state: &mut State, action: Action) -> Result<()> {
     match action {
-        Action::Scan | Action::CheckConnectivity | Action::Reconnect(..) => {}
+        Action::Scan | Action::CheckConnectivity => {}
+        Action::Reconnect(uuid, _) => {
+            for net in &mut state.networks {
+                if net.profile.as_deref() == Some(uuid.as_str()) {
+                    net.active = true;
+                    net.ip4 = Some("192.168.1.42/24".into());
+                }
+            }
+        }
         Action::SetWifi(on) => {
             state.radios.wifi.enabled = on;
             if !on {

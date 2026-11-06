@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+exec nmrs-gui --status --watch "$@" | jq --unbuffered -c '
+  def icon:
+    if .airplane then "󰀝"
+    elif .connectivity == "portal" then "󰗹"
+    elif .primary == null then (if .radios.wifi.enabled then "󰤭" else "󰤮" end)
+    elif .primary.kind == "ethernet" then "󰈀"
+    elif .wifi.strength >= 80 then "󰤨"
+    elif .wifi.strength >= 60 then "󰤥"
+    elif .wifi.strength >= 40 then "󰤢"
+    elif .wifi.strength >= 20 then "󰤟"
+    else "󰤯" end;
+  def text_label:
+    if .airplane then "airplane"
+    elif .primary == null then (if .radios.wifi.enabled then "offline" else "off" end)
+    else .primary.name end;
+  def tooltip:
+    [
+      (if .primary then .primary.name + " · " + .primary.interface else empty end),
+      (if .wifi then .wifi.security + " · " + (.wifi.band // "") + " · " + (.wifi.strength|tostring) + "%" + (if .wifi.ip4 then " · " + .wifi.ip4 else "" end) else empty end),
+      (.ethernet[] | .interface + (if .speed_mbps then " · " + (.speed_mbps|tostring) + " Mb/s" else "" end) + (if .ip4 then " · " + .ip4 else "" end)),
+      (.vpn[] | "󰦝 " + .name + " · " + .kind),
+      .connectivity
+    ] | join("\n");
+  {
+    text: (icon + "  " + text_label + (if (.vpn|length) > 0 then "  󰦝" else "" end)),
+    tooltip: tooltip,
+    class: (if .connectivity == "portal" then "portal" elif .primary == null then "offline" elif (.vpn|length) > 0 then "vpn" else .primary.kind end),
+    percentage: (.wifi.strength // 0)
+  }'

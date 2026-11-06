@@ -147,6 +147,8 @@ One instance runs per app id. Launching `nmrs-gui` again raises the existing win
 
 `nmrs-gui --status` prints one JSON object with connectivity, the primary connection, the active Wi-Fi network, wired links, VPNs, radios and the resolved theme colors; `--watch` keeps printing a line whenever something changes. Bars and widgets read it instead of polling `nmcli`.
 
+Ready-made bar items for Quickshell and waybar that use it live in [`contrib/`](./contrib).
+
 ### Keybindings
 
 | Key                             | Action                                       |

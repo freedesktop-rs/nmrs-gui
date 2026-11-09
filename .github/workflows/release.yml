@@ -83,45 +83,27 @@ jobs:
           files: artifacts/*
 
   aur:
-    name: Publish to AUR
+    name: Publish to AUR (${{ matrix.pkg }})
     needs: release
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: [nmrs, nmrs-bin]
 
     steps:
       - uses: actions/checkout@v7
 
       - name: Set pkgver
         run: |
-          sed -i "s/^pkgver=.*/pkgver=${GITHUB_REF_NAME#v}/; s/^pkgrel=.*/pkgrel=1/" packaging/aur/nmrs/PKGBUILD
+          sed -i "s/^pkgver=.*/pkgver=${GITHUB_REF_NAME#v}/; s/^pkgrel=.*/pkgrel=1/" packaging/aur/${{ matrix.pkg }}/PKGBUILD
 
       - uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
         with:
-          pkgname: nmrs
-          pkgbuild: packaging/aur/nmrs/PKGBUILD
+          pkgname: ${{ matrix.pkg }}
+          pkgbuild: packaging/aur/${{ matrix.pkg }}/PKGBUILD
           updpkgsums: true
           commit_username: Akrm Al-Hakimi
           commit_email: akrm@cachebag.sh
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: "upgpkg: nmrs ${{ github.ref_name }}"
-
-  aur-bin:
-    name: Publish to AUR (nmrs-bin)
-    needs: release
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Set pkgver
-        run: |
-          sed -i "s/^pkgver=.*/pkgver=${GITHUB_REF_NAME#v}/; s/^pkgrel=.*/pkgrel=1/" packaging/aur/nmrs-bin/PKGBUILD
-
-      - uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
-        with:
-          pkgname: nmrs-bin
-          pkgbuild: packaging/aur/nmrs-bin/PKGBUILD
-          updpkgsums: true
-          commit_username: Akrm Al-Hakimi
-          commit_email: akrm@cachebag.sh
-          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          commit_message: "upgpkg: nmrs-bin ${{ github.ref_name }}"
+          commit_message: "upgpkg: ${{ matrix.pkg }} ${{ github.ref_name }}"

@@ -100,7 +100,7 @@ jobs:
           pkgbuild: packaging/aur/nmrs/PKGBUILD
           updpkgsums: true
           commit_username: Akrm Al-Hakimi
-          commit_email: alhakimiakrmj@gmail.com
+          commit_email: akrm@cachebag.sh
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "upgpkg: nmrs ${{ github.ref_name }}"
 
@@ -122,6 +122,6 @@ jobs:
           pkgbuild: packaging/aur/nmrs-bin/PKGBUILD
           updpkgsums: true
           commit_username: Akrm Al-Hakimi
-          commit_email: alhakimiakrmj@gmail.com
+          commit_email: akrm@cachebag.sh
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "upgpkg: nmrs-bin ${{ github.ref_name }}"

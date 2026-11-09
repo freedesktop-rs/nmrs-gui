@@ -92,14 +92,36 @@ jobs:
 
       - name: Set pkgver
         run: |
-          sed -i "s/^pkgver=.*/pkgver=${GITHUB_REF_NAME#v}/; s/^pkgrel=.*/pkgrel=1/" packaging/aur/PKGBUILD
+          sed -i "s/^pkgver=.*/pkgver=${GITHUB_REF_NAME#v}/; s/^pkgrel=.*/pkgrel=1/" packaging/aur/nmrs/PKGBUILD
 
       - uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
         with:
           pkgname: nmrs
-          pkgbuild: packaging/aur/PKGBUILD
+          pkgbuild: packaging/aur/nmrs/PKGBUILD
           updpkgsums: true
           commit_username: Akrm Al-Hakimi
           commit_email: alhakimiakrmj@gmail.com
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "upgpkg: nmrs ${{ github.ref_name }}"
+
+  aur-bin:
+    name: Publish to AUR (nmrs-bin)
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set pkgver
+        run: |
+          sed -i "s/^pkgver=.*/pkgver=${GITHUB_REF_NAME#v}/; s/^pkgrel=.*/pkgrel=1/" packaging/aur/nmrs-bin/PKGBUILD
+
+      - uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
+        with:
+          pkgname: nmrs-bin
+          pkgbuild: packaging/aur/nmrs-bin/PKGBUILD
+          updpkgsums: true
+          commit_username: Akrm Al-Hakimi
+          commit_email: alhakimiakrmj@gmail.com
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: "upgpkg: nmrs-bin ${{ github.ref_name }}"

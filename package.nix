@@ -45,6 +45,7 @@ rustPlatform.buildRustPackage {
 
   postInstall = ''
     install -D nmrs.desktop -t $out/share/applications
+    install -Dm644 assets/nmrs.svg -t $out/share/icons/hicolor/scalable/apps
     wrapProgram $out/bin/nmrs-gui --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath runtimeLibs}
   '';
 

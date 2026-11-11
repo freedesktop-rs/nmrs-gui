@@ -30,5 +30,6 @@ package() {
   install -Dm755 target/release/nmrs-gui "$pkgdir/usr/bin/nmrs-gui"
   ln -s nmrs-gui "$pkgdir/usr/bin/nmrs"
   install -Dm644 nmrs.desktop "$pkgdir/usr/share/applications/nmrs.desktop"
+  install -Dm644 assets/nmrs.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/nmrs.svg"
   install -Dm644 LICENSE-MIT "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }

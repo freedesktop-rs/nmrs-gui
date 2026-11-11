@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/nmrs.svg" alt="nmrs" width="128"></p>
+
 # nmrs-gui
 
 A NetworkManager client for Linux, built on [nmrs](https://github.com/freedesktop-rs/nmrs) and [gpui](https://gpui.rs).

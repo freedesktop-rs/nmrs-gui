@@ -148,7 +148,7 @@ One instance runs per app id. Launching `nmrs-gui` again raises the existing win
 
 ### Tray
 
-`nmrs-gui --tray` starts without a window and puts an icon in the system tray (StatusNotifierItem, so waybar's `tray` module, KDE, Quickshell and GNOME with the AppIndicator extension all show it). The icon follows the connection: signal strength, wired, VPN, airplane mode or offline. Clicking it opens a menu that connects to saved Wi-Fi networks in range, toggles VPNs, Wi-Fi and airplane mode, opens the window and quits. Middle click toggles the window directly. Set `behavior.tray_click = "window"` to have left click toggle the window instead, leaving the menu on right click; it is read at startup.
+`nmrs-gui --tray` starts without a window and puts an icon in the system tray (StatusNotifierItem, so waybar's `tray` module, KDE, Quickshell and GNOME with the AppIndicator extension all show it). The icon is the nmrs logo, sent as image data so it shows without an icon theme; set `behavior.tray_icon = "status"` to use theme icons that follow the connection (signal strength, wired, VPN, airplane mode, offline) instead. The tooltip and the first menu row always show the current connection. Clicking it opens a menu that connects to saved Wi-Fi networks in range, toggles VPNs, Wi-Fi and airplane mode, opens the window and quits. Middle click toggles the window directly. Set `behavior.tray_click = "window"` to have left click toggle the window instead, leaving the menu on right click; both tray keys are read at startup.
 
 In this mode closing the window or pressing `Esc` hides it to the tray; `Ctrl+Q` or the menu's Quit exits. Start it from your compositor's autostart, with the same `--app-id` your toggle keybinding uses.
 
@@ -236,6 +236,7 @@ close_on_connect = false
 close_on_escape = true
 confirm_forget = true
 tray_click = "menu"        # menu, window; what left click on the tray icon does
+tray_icon = "logo"         # logo, status; status needs an icon theme in your bar
 ```
 
 `layout.pages` controls both which pages appear and their order.

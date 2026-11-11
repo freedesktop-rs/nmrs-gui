@@ -3963,6 +3963,7 @@ dependencies = [
  "ksni",
  "log",
  "nmrs",
+ "resvg 0.46.0",
  "serde",
  "serde_json",
  "tokio",

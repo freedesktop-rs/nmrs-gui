@@ -5,7 +5,7 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 ## [Unreleased]
 ### Added
 - An application icon, installed by the AUR and Nix packages and used by the desktop entry ([#83](https://github.com/freedesktop-rs/nmrs-gui/pull/83))
-- `--tray` runs nmrs in the system tray: a StatusNotifierItem icon that follows the connection, with a menu to connect to saved Wi-Fi networks, toggle VPNs, Wi-Fi and airplane mode; `behavior.tray_click` picks whether left click opens the menu or the window ([#83](https://github.com/freedesktop-rs/nmrs-gui/pull/83))
+- `--tray` runs nmrs in the system tray: a StatusNotifierItem icon with a menu to connect to saved Wi-Fi networks, toggle VPNs, Wi-Fi and airplane mode; `behavior.tray_click` picks whether left click opens the menu or the window, and `behavior.tray_icon` picks the nmrs logo or theme icons that follow the connection ([#83](https://github.com/freedesktop-rs/nmrs-gui/pull/83))
 - `--status` prints the network state as JSON, and `--status --watch` streams a line on every change, for bars and widgets ([#75](https://github.com/freedesktop-rs/nmrs-gui/pull/75))
 - `nmrs-bin` AUR package, prebuilt from the release binary and published automatically on release ([#80](https://github.com/freedesktop-rs/nmrs-gui/pull/80))
 - A control socket at `$XDG_RUNTIME_DIR/nmrs/<app-id>.sock`: `--toggle`, `--show`, `--hide` and `--quit` drive the running instance, a plain relaunch raises it, and a hidden instance stays resident so the next toggle is instant ([#74](https://github.com/freedesktop-rs/nmrs-gui/pull/74))

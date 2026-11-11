@@ -6,17 +6,52 @@ use ksni::blocking::TrayMethods;
 use ksni::menu::{CheckmarkItem, MenuItem, StandardItem};
 
 use crate::backend::Backend;
-use crate::config::{Page, TrayClick};
+use crate::config::{Behavior, Page, TrayClick, TrayIcon};
 use crate::ipc::{Command, Request};
 use crate::model::{Action, State, WifiNetwork};
 use crate::status::Status;
 
 const NETWORKS: usize = 8;
+const LOGO: &[u8] = include_bytes!("../assets/nmrs.svg");
+const SIZES: [u32; 4] = [22, 32, 48, 64];
 
 struct NmTray<const MENU: bool> {
     state: State,
     backend: Backend,
     commands: mpsc::UnboundedSender<Request>,
+    logo: Vec<ksni::Icon>,
+}
+
+fn logo() -> Vec<ksni::Icon> {
+    use resvg::{tiny_skia, usvg};
+    let Ok(tree) = usvg::Tree::from_data(LOGO, &usvg::Options::default()) else {
+        return Vec::new();
+    };
+    SIZES
+        .iter()
+        .filter_map(|&size| {
+            let mut pixmap = tiny_skia::Pixmap::new(size, size)?;
+            let scale = size as f32 / tree.size().width();
+            resvg::render(
+                &tree,
+                tiny_skia::Transform::from_scale(scale, scale),
+                &mut pixmap.as_mut(),
+            );
+            let data = pixmap
+                .pixels()
+                .iter()
+                .flat_map(|pixel| {
+                    let color = pixel.demultiply();
+                    [color.alpha(), color.red(), color.green(), color.blue()]
+                })
+                .collect();
+            Some(ksni::Icon {
+                width: size as i32,
+                height: size as i32,
+                data,
+            })
+        })
+        .collect()
 }
 
 impl<const MENU: bool> NmTray<MENU> {
@@ -135,7 +170,15 @@ impl<const MENU: bool> ksni::Tray for NmTray<MENU> {
     }
 
     fn icon_name(&self) -> String {
-        icon(&self.status()).into()
+        if self.logo.is_empty() {
+            icon(&self.status()).into()
+        } else {
+            String::new()
+        }
+    }
+
+    fn icon_pixmap(&self) -> Vec<ksni::Icon> {
+        self.logo.clone()
     }
 
     fn tool_tip(&self) -> ksni::ToolTip {
@@ -263,14 +306,19 @@ impl<const MENU: bool> ksni::Tray for NmTray<MENU> {
 pub fn spawn(
     backend: Backend,
     commands: mpsc::UnboundedSender<Request>,
-    click: TrayClick,
+    behavior: &Behavior,
 ) -> std::io::Result<()> {
+    let click = behavior.tray_click;
+    let logo = match behavior.tray_icon {
+        TrayIcon::Logo => logo(),
+        TrayIcon::Status => Vec::new(),
+    };
     std::thread::Builder::new()
         .name("nmrs-tray".into())
         .spawn(move || {
             let result = match click {
-                TrayClick::Menu => serve::<true>(backend, commands),
-                TrayClick::Window => serve::<false>(backend, commands),
+                TrayClick::Menu => serve::<true>(backend, commands, logo),
+                TrayClick::Window => serve::<false>(backend, commands, logo),
             };
             if let Err(err) = result {
                 log::warn!("tray stopped: {err}");
@@ -282,6 +330,7 @@ pub fn spawn(
 fn serve<const MENU: bool>(
     backend: Backend,
     commands: mpsc::UnboundedSender<Request>,
+    logo: Vec<ksni::Icon>,
 ) -> anyhow::Result<()> {
     let mut events = backend.watch();
     let state = futures::executor::block_on(backend.state()).unwrap_or_default();
@@ -289,6 +338,7 @@ fn serve<const MENU: bool>(
         state,
         backend: backend.clone(),
         commands,
+        logo,
     }
     .assume_sni_available(true)
     .spawn()?;
@@ -376,6 +426,18 @@ mod tests {
         let status = Status::from_state(&state, None);
         assert_eq!(icon(&status), "airplane-mode-symbolic");
         assert_eq!(summary(&status), "Airplane mode");
+    }
+
+    #[::core::prelude::v1::test]
+    fn logo_renders_at_every_size() {
+        let icons = logo();
+        assert_eq!(icons.len(), SIZES.len());
+        for (icon, size) in icons.iter().zip(SIZES) {
+            assert_eq!(icon.width, size as i32);
+            assert_eq!(icon.data.len(), (size * size * 4) as usize);
+            assert!(icon.data.chunks(4).any(|argb| argb[0] == 255));
+            assert!(icon.data.chunks(4).any(|argb| argb[0] == 0));
+        }
     }
 
     #[::core::prelude::v1::test]

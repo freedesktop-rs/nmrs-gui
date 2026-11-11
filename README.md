@@ -147,6 +147,16 @@ One instance runs per app id. Launching `nmrs-gui` again raises the existing win
 
 `nmrs-gui --status` prints one JSON object with connectivity, the primary connection, the active Wi-Fi network, wired links, VPNs, radios and the resolved theme colors; `--watch` keeps printing a line whenever something changes. Bars and widgets read it instead of polling `nmcli`.
 
+A waybar module, for example:
+
+```jsonc
+"custom/nmrs": {
+  "exec": "nmrs-gui --status --watch | jq --unbuffered -c '{text: (.primary.name // \"offline\"), tooltip: .connectivity, class: .connectivity}'",
+  "return-type": "json",
+  "on-click": "nmrs-gui --toggle --app-id nmrs-popup --layout compact"
+}
+```
+
 ### Keybindings
 
 | Key                             | Action                                       |

@@ -72,6 +72,16 @@ impl Backend {
         self.spawn(self.service.execute(action))
     }
 
+    pub fn dispatch(&self, action: Action) {
+        let label = action.describe();
+        let fut = self.service.execute(action);
+        self.runtime.spawn(async move {
+            if let Err(err) = fut.await {
+                log::warn!("{label} failed: {err}");
+            }
+        });
+    }
+
     pub fn watch(&self) -> mpsc::UnboundedReceiver<()> {
         let (tx, rx) = mpsc::unbounded();
         let fut = self.service.watch(tx);

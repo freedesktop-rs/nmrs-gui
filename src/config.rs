@@ -238,12 +238,21 @@ impl Sort {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TrayClick {
+    #[default]
+    Menu,
+    Window,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Behavior {
     pub close_on_connect: bool,
     pub close_on_escape: bool,
     pub confirm_forget: bool,
+    pub tray_click: TrayClick,
 }
 
 impl Default for Behavior {
@@ -252,6 +261,7 @@ impl Default for Behavior {
             close_on_connect: false,
             close_on_escape: true,
             confirm_forget: true,
+            tray_click: TrayClick::Menu,
         }
     }
 }

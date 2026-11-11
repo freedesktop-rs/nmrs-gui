@@ -7,6 +7,7 @@ mod ipc;
 mod model;
 mod status;
 mod theme;
+mod tray;
 mod ui;
 
 use std::cell::{Cell, RefCell};
@@ -15,6 +16,7 @@ use std::rc::Rc;
 
 use clap::{ArgAction, Parser};
 use futures::StreamExt;
+use futures::channel::mpsc;
 use gpui_kit::*;
 
 use crate::app::NmApp;
@@ -53,6 +55,12 @@ struct Args {
     hide: bool,
     #[arg(long, group = "command", help = "Quit the running instance")]
     quit: bool,
+    #[arg(
+        long,
+        conflicts_with_all = ["command", "status"],
+        help = "Run in the system tray, starting without a window"
+    )]
+    tray: bool,
     #[arg(long, help = "Print network state as JSON and exit")]
     status: bool,
     #[arg(
@@ -218,6 +226,10 @@ fn main() -> anyhow::Result<()> {
 
     let command = args.command();
     if let Some(mut stream) = ipc::connect(&args.app_id) {
+        if args.tray {
+            eprintln!("nmrs-gui is already running");
+            std::process::exit(1);
+        }
         let command = command.unwrap_or(Command::Show(args.page));
         let reply = ipc::send(&mut stream, &command)?;
         if reply != "ok" {
@@ -234,6 +246,15 @@ fn main() -> anyhow::Result<()> {
     let socket = ipc::socket_path(&args.app_id);
     let requests = ipc::serve(ipc::bind(&args.app_id)?);
     let backend = Backend::start(args.demo)?;
+    let (tray_tx, tray_rx) = mpsc::unbounded();
+    let resident = args.tray;
+    if resident {
+        let click = Store::new(args.config.clone())
+            .load()
+            .map(|c| c.behavior.tray_click)
+            .unwrap_or_default();
+        tray::spawn(backend.clone(), tray_tx, click)?;
+    }
     let launcher = Rc::new(Launcher {
         backend,
         config_path: args.config,
@@ -254,16 +275,18 @@ fn main() -> anyhow::Result<()> {
                 log::warn!("{err}");
             }
 
-            let reply = launcher.open(page, cx);
-            if reply != "ok" {
-                eprintln!("{reply}");
-                cx.quit();
-                return;
+            if !resident {
+                let reply = launcher.open(page, cx);
+                if reply != "ok" {
+                    eprintln!("{reply}");
+                    cx.quit();
+                    return;
+                }
             }
 
             let closed = launcher.clone();
             cx.on_window_closed(move |cx, _| {
-                if !closed.hiding.replace(false) {
+                if !closed.hiding.replace(false) && !resident {
                     cx.quit();
                 }
             })
@@ -271,7 +294,7 @@ fn main() -> anyhow::Result<()> {
 
             let served = launcher.clone();
             cx.spawn(async move |cx| {
-                let mut requests = requests;
+                let mut requests = futures::stream::select(requests, tray_rx);
                 while let Some((command, reply)) = requests.next().await {
                     let result = cx.update(|cx| served.handle(command, cx));
                     let _ = reply.send(result);

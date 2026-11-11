@@ -366,7 +366,7 @@ impl NmApp {
             window.focus(&self.focus, cx);
             cx.notify();
         } else if self.config.behavior.close_on_escape {
-            cx.quit();
+            window.remove_window();
         }
     }
 

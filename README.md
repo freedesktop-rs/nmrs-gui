@@ -135,6 +135,7 @@ Options:
       --show             Show and raise the running window
       --hide             Hide the running window, keeping it ready
       --quit             Quit the running instance
+      --tray             Run in the system tray, starting without a window
       --status           Print network state as JSON and exit
       --watch            With --status, print a line on every change
   -V, --version          Print version and build hash
@@ -142,6 +143,12 @@ Options:
 ```
 
 One instance runs per app id. Launching `nmrs-gui` again raises the existing window; `--toggle`, `--show`, `--hide` and `--quit` control it. Use a separate `--app-id` to run, for example, a compact popup alongside the full window.
+
+### Tray
+
+`nmrs-gui --tray` starts without a window and puts an icon in the system tray (StatusNotifierItem, so waybar's `tray` module, KDE, Quickshell and GNOME with the AppIndicator extension all show it). The icon follows the connection: signal strength, wired, VPN, airplane mode or offline. Clicking it opens a menu that connects to saved Wi-Fi networks in range, toggles VPNs, Wi-Fi and airplane mode, opens the window and quits. Middle click toggles the window directly. Set `behavior.tray_click = "window"` to have left click toggle the window instead, leaving the menu on right click; it is read at startup.
+
+In this mode closing the window or pressing `Esc` hides it to the tray; `Ctrl+Q` or the menu's Quit exits. Start it from your compositor's autostart, with the same `--app-id` your toggle keybinding uses.
 
 ### Status
 
@@ -226,6 +233,7 @@ show_virtual = false       # veth, bridge and tunnel interfaces
 close_on_connect = false
 close_on_escape = true
 confirm_forget = true
+tray_click = "menu"        # menu, window; what left click on the tray icon does
 ```
 
 `layout.pages` controls both which pages appear and their order.

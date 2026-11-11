@@ -249,11 +249,11 @@ fn main() -> anyhow::Result<()> {
     let (tray_tx, tray_rx) = mpsc::unbounded();
     let resident = args.tray;
     if resident {
-        let click = Store::new(args.config.clone())
+        let behavior = Store::new(args.config.clone())
             .load()
-            .map(|c| c.behavior.tray_click)
+            .map(|c| c.behavior)
             .unwrap_or_default();
-        tray::spawn(backend.clone(), tray_tx, click)?;
+        tray::spawn(backend.clone(), tray_tx, &behavior)?;
     }
     let launcher = Rc::new(Launcher {
         backend,

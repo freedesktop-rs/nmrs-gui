@@ -246,6 +246,14 @@ pub enum TrayClick {
     Window,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TrayIcon {
+    #[default]
+    Logo,
+    Status,
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Behavior {
@@ -253,6 +261,7 @@ pub struct Behavior {
     pub close_on_escape: bool,
     pub confirm_forget: bool,
     pub tray_click: TrayClick,
+    pub tray_icon: TrayIcon,
 }
 
 impl Default for Behavior {
@@ -262,6 +271,7 @@ impl Default for Behavior {
             close_on_escape: true,
             confirm_forget: true,
             tray_click: TrayClick::Menu,
+            tray_icon: TrayIcon::Logo,
         }
     }
 }

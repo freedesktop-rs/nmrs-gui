@@ -1,3 +1,5 @@
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use futures::StreamExt;
@@ -307,12 +309,14 @@ pub fn spawn(
     backend: Backend,
     commands: mpsc::UnboundedSender<Request>,
     behavior: &Behavior,
+    resident: Arc<AtomicBool>,
 ) -> std::io::Result<()> {
     let click = behavior.tray_click;
     let logo = match behavior.tray_icon {
         TrayIcon::Logo => logo(),
         TrayIcon::Status => Vec::new(),
     };
+    let fallback = commands.clone();
     std::thread::Builder::new()
         .name("nmrs-tray".into())
         .spawn(move || {
@@ -323,6 +327,9 @@ pub fn spawn(
             if let Err(err) = result {
                 log::warn!("tray stopped: {err}");
             }
+            resident.store(false, Ordering::Relaxed);
+            let (reply, _) = oneshot::channel();
+            let _ = fallback.unbounded_send((Command::Show(None), reply));
         })?;
     Ok(())
 }
@@ -333,7 +340,10 @@ fn serve<const MENU: bool>(
     logo: Vec<ksni::Icon>,
 ) -> anyhow::Result<()> {
     let mut events = backend.watch();
-    let state = futures::executor::block_on(backend.state()).unwrap_or_default();
+    let state = futures::executor::block_on(backend.state()).unwrap_or_else(|err| {
+        log::warn!("tray initial state failed: {err}");
+        State::default()
+    });
     let handle = NmTray::<MENU> {
         state,
         backend: backend.clone(),

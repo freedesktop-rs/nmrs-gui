@@ -13,6 +13,8 @@ mod ui;
 use std::cell::{Cell, RefCell};
 use std::path::PathBuf;
 use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use clap::{ArgAction, Parser};
 use futures::StreamExt;
@@ -57,7 +59,7 @@ struct Args {
     quit: bool,
     #[arg(
         long,
-        conflicts_with_all = ["command", "status"],
+        conflicts_with_all = ["command", "status", "page"],
         help = "Run in the system tray, starting without a window"
     )]
     tray: bool,
@@ -247,13 +249,13 @@ fn main() -> anyhow::Result<()> {
     let requests = ipc::serve(ipc::bind(&args.app_id)?);
     let backend = Backend::start(args.demo)?;
     let (tray_tx, tray_rx) = mpsc::unbounded();
-    let resident = args.tray;
-    if resident {
+    let resident = Arc::new(AtomicBool::new(args.tray));
+    if args.tray {
         let behavior = Store::new(args.config.clone())
             .load()
             .map(|c| c.behavior)
             .unwrap_or_default();
-        tray::spawn(backend.clone(), tray_tx, &behavior)?;
+        tray::spawn(backend.clone(), tray_tx, &behavior, resident.clone())?;
     }
     let launcher = Rc::new(Launcher {
         backend,
@@ -275,7 +277,7 @@ fn main() -> anyhow::Result<()> {
                 log::warn!("{err}");
             }
 
-            if !resident {
+            if !resident.load(Ordering::Relaxed) {
                 let reply = launcher.open(page, cx);
                 if reply != "ok" {
                     eprintln!("{reply}");
@@ -286,7 +288,7 @@ fn main() -> anyhow::Result<()> {
 
             let closed = launcher.clone();
             cx.on_window_closed(move |cx, _| {
-                if !closed.hiding.replace(false) && !resident {
+                if !closed.hiding.replace(false) && !resident.load(Ordering::Relaxed) {
                     cx.quit();
                 }
             })

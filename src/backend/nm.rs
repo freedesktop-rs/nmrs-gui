@@ -150,7 +150,7 @@ async fn load(nm: &NetworkManager) -> Result<State> {
         })
         .collect();
 
-    let vpns = nm
+    let mut vpns: Vec<Vpn> = nm
         .list_vpn_connections()
         .await
         .unwrap_or_default()
@@ -183,9 +183,42 @@ async fn load(nm: &NetworkManager) -> Result<State> {
                 user: vpn.user_name,
                 ip4,
                 autoconnect,
+                managed: true,
             }
         })
         .collect();
+
+    // Tunnels created outside NetworkManager (plain OpenVPN/WireGuard, tun0, etc.).
+    // nmrs has no Tun/WireGuard variants yet: NM_DEVICE_TYPE_TUN = 16, WIREGUARD = 29.
+    for dev in nm.list_devices().await.unwrap_or_default() {
+        let kind = match dev.device_type {
+            nmrs::DeviceType::Other(29) => VpnKind::WireGuard,
+            nmrs::DeviceType::Other(16) => VpnKind::Other("TUN".into()),
+            // GENERIC (14): OpenVPN DCO and other kernel tunnels NM has no type for.
+            nmrs::DeviceType::Other(14) => VpnKind::OpenVpn,
+            _ => continue,
+        };
+        let unmanaged = dev.managed == Some(false) || dev.state == DeviceState::Unmanaged;
+        let known = vpns
+            .iter()
+            .any(|v| v.interface.as_deref() == Some(dev.interface.as_str()));
+        if !unmanaged || known {
+            continue;
+        }
+        vpns.push(Vpn {
+            uuid: format!("unmanaged:{}", dev.interface),
+            name: dev.interface.clone(),
+            kind,
+            // The device exists, so the tunnel is up.
+            state: LinkState::Connected,
+            interface: Some(dev.interface),
+            gateway: None,
+            user: None,
+            ip4: dev.ip4_address,
+            autoconnect: false,
+            managed: false,
+        });
+    }
 
     let bluetooth = nm
         .list_bluetooth_devices()

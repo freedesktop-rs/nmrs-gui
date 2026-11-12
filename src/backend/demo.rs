@@ -252,6 +252,7 @@ fn add_vpn(state: &mut State, name: String, kind: VpnKind, gateway: Option<Strin
         user: None,
         ip4: None,
         autoconnect: false,
+        managed: true,
     });
 }
 
@@ -503,6 +504,7 @@ fn seed() -> State {
                 user: None,
                 ip4: Some("10.66.12.181/32".into()),
                 autoconnect: false,
+                managed: true,
             },
             Vpn {
                 uuid: "v2".into(),
@@ -514,6 +516,7 @@ fn seed() -> State {
                 user: Some("akrm".into()),
                 ip4: None,
                 autoconnect: false,
+                managed: true,
             },
             Vpn {
                 uuid: "v3".into(),
@@ -525,6 +528,7 @@ fn seed() -> State {
                 user: None,
                 ip4: None,
                 autoconnect: false,
+                managed: true,
             },
         ],
         bluetooth: vec![

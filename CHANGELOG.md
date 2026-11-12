@@ -3,6 +3,8 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+
+## [2.2.0] - 2026-11-12
 ### Added
 - An application icon, installed by the AUR and Nix packages and used by the desktop entry ([#83](https://github.com/freedesktop-rs/nmrs-gui/pull/83))
 - `--tray` runs nmrs in the system tray: a StatusNotifierItem icon with a menu to connect to saved Wi-Fi networks, toggle VPNs, Wi-Fi and airplane mode; `behavior.tray_click` picks whether left click opens the menu or the window, and `behavior.tray_icon` picks the nmrs logo or theme icons that follow the connection ([#83](https://github.com/freedesktop-rs/nmrs-gui/pull/83))
@@ -141,7 +143,8 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 [1.5.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.1.0...v1.5.0
 [1.5.1]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.0...v1.5.1
-[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/nmrs-gui-v1.6.0...v2.0.0

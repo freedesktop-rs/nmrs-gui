@@ -4,6 +4,7 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- `--status` reports tunnels not managed by NetworkManager (ex. OpenVPN DCO `tun0`) as `"managed": false`. The VPN list shows them read-only ([#87](https://github.com/freedesktop-rs/nmrs-gui/pull/87))
 - `--status` prints the network state as JSON, and `--status --watch` streams a line on every change, for bars and widgets ([#75](https://github.com/freedesktop-rs/nmrs-gui/pull/75))
 - `nmrs-bin` AUR package, prebuilt from the release binary and published automatically on release ([#80](https://github.com/freedesktop-rs/nmrs-gui/pull/80))
 - A control socket at `$XDG_RUNTIME_DIR/nmrs/<app-id>.sock`: `--toggle`, `--show`, `--hide` and `--quit` drive the running instance, a plain relaunch raises it, and a hidden instance stays resident so the next toggle is instant ([#74](https://github.com/freedesktop-rs/nmrs-gui/pull/74))

@@ -91,15 +91,26 @@ async fn load(nm: &NetworkManager) -> Result<State> {
                 ActiveConnection::Wifi(wifi) if wifi.ssid == group.ssid => Some(wifi),
                 _ => None,
             });
+            let connected = group.access_points.iter().find(|ap| ap.is_active);
+            let shown = connected.unwrap_or(&group.strongest);
+            let live_kbps = snapshot
+                .wifi_devices
+                .iter()
+                .find(|device| device.interface == group.interface)
+                .and_then(|device| device.bitrate_kbps);
             WifiNetwork {
                 security: security(&group.strongest.security),
-                strength: group.strongest.strength,
-                frequency: group.strongest.frequency_mhz,
+                strength: shown.strength,
+                frequency: shown.frequency_mhz,
                 interface: group.interface.clone(),
                 active: group.active,
                 known: group.known,
                 profile: group.saved_profiles.first().map(|p| p.uuid.clone()),
-                access_points: group.access_points.iter().map(access_point).collect(),
+                access_points: group
+                    .access_points
+                    .iter()
+                    .map(|ap| access_point(ap, live_kbps))
+                    .collect(),
                 ip4: wifi_active.and_then(|w| w.ip4_address.clone()),
                 ip6: wifi_active.and_then(|w| w.ip6_address.clone()),
                 ssid: group.ssid,
@@ -322,12 +333,19 @@ fn security(features: &SecurityFeatures) -> Security {
     }
 }
 
-fn access_point(ap: &NmAccessPoint) -> AccessPoint {
+fn rate_mbps(active: bool, live_kbps: Option<u32>, max_kbps: u32) -> u32 {
+    match live_kbps {
+        Some(kbps) if active => kbps / 1000,
+        _ => max_kbps / 1000,
+    }
+}
+
+fn access_point(ap: &NmAccessPoint, live_kbps: Option<u32>) -> AccessPoint {
     AccessPoint {
         bssid: ap.bssid.clone(),
         strength: ap.strength,
         frequency: ap.frequency_mhz,
-        rate_mbps: ap.max_bitrate_kbps / 1000,
+        rate_mbps: rate_mbps(ap.is_active, live_kbps, ap.max_bitrate_kbps),
         active: ap.is_active,
     }
 }
@@ -807,5 +825,12 @@ mod tests {
             WifiSecurity::Open
         ));
         assert!(wifi_security(Security::Psk, Credentials::None).is_err());
+    }
+
+    #[test]
+    fn connected_access_point_reports_the_live_link_rate() {
+        assert_eq!(rate_mbps(true, Some(2_401_900), 0), 2401);
+        assert_eq!(rate_mbps(true, None, 866_700), 866);
+        assert_eq!(rate_mbps(false, Some(2_401_900), 866_700), 866);
     }
 }

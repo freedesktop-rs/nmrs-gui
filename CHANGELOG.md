@@ -9,6 +9,8 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 - `--status` prints the network state as JSON, and `--status --watch` streams a line on every change, for bars and widgets ([#75](https://github.com/freedesktop-rs/nmrs-gui/pull/75))
 - `nmrs-bin` AUR package, prebuilt from the release binary and published automatically on release ([#80](https://github.com/freedesktop-rs/nmrs-gui/pull/80))
 - A control socket at `$XDG_RUNTIME_DIR/nmrs/<app-id>.sock`: `--toggle`, `--show`, `--hide` and `--quit` drive the running instance, a plain relaunch raises it, and a hidden instance stays resident so the next toggle is instant ([#74](https://github.com/freedesktop-rs/nmrs-gui/pull/74))
+### Fixed
+- The Wi-Fi details panel shows the live link rate, and takes band, channel and signal from the connected access point. On a 6 GHz link it showed 0 Mb/s and the strongest access point's band ([#89](https://github.com/freedesktop-rs/nmrs-gui/pull/89))
 
 ## [2.1.0] - 2026-11-03
 ### Added

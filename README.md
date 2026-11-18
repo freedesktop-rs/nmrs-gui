@@ -152,6 +152,16 @@ One instance runs per app id. Launching `nmrs-gui` again raises the existing win
 
 In this mode closing the window or pressing `Esc` hides it to the tray; `Ctrl+Q` or the menu's Quit exits. Start it from your compositor's autostart, with the same `--app-id` your toggle keybinding uses.
 
+The AUR and Nix packages also ship a systemd user unit, `nmrs-tray.service`, which runs `nmrs-gui --tray` with the graphical session. It is not enabled by default:
+
+```sh
+systemctl --user enable --now nmrs-tray
+```
+
+It needs a compositor that starts `graphical-session.target` (most do through UWSM, or a systemd-aware session). To pass `--app-id`, override `ExecStart` with `systemctl --user edit nmrs-tray`.
+
+Sessions started straight from a display manager like ly or greetd, or from a TTY, usually never reach that target. Keep `nmrs-gui --tray` in the compositor's autostart there
+
 ### Status
 
 `nmrs-gui --status` prints one JSON object with connectivity, the primary connection, the active Wi-Fi network, wired links, VPNs, radios and the resolved theme colors; `--watch` keeps printing a line whenever something changes. Bars and widgets read it instead of polling `nmcli`.

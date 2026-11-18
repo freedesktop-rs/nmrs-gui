@@ -1,0 +1,12 @@
+[Unit]
+Description=nmrs tray icon
+Documentation=https://github.com/freedesktop-rs/nmrs-gui
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/nmrs-gui --tray
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

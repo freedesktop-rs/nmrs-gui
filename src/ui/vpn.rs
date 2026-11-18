@@ -248,11 +248,14 @@ fn vpn_row(
     let busy = vpn.state.is_busy();
     let key = format!("vpn:{}", vpn.uuid);
     let pending = app.is_pending(&key);
-    let expanded = app.vpn.expanded.as_deref() == Some(vpn.uuid.as_str());
+    let expanded = vpn.managed && app.vpn.expanded.as_deref() == Some(vpn.uuid.as_str());
     let uuid = vpn.uuid.clone();
     let uuid_toggle = vpn.uuid.clone();
 
     let mut subtitle = vec![vpn.kind.label().to_string()];
+    if !vpn.managed {
+        subtitle.push("Unmanaged".into());
+    }
     if up {
         subtitle.insert(0, "Connected".into());
     } else if busy {
@@ -293,24 +296,26 @@ fn vpn_row(
         Some(subtitle.join(" · ")),
         cx,
     ))
-    .child(
-        div()
-            .id(SharedString::from(format!("vpn-sw-wrap-{}", vpn.uuid)))
-            .on_click(|_, _, cx| cx.stop_propagation())
-            .child(
-                Switch::new(SharedString::from(format!("vpn-sw-{}", vpn.uuid)))
-                    .checked(up || busy)
-                    .disabled(pending)
-                    .on_click(cx.listener(move |this, on: &bool, window, cx| {
-                        let action = if *on {
-                            Action::Activate(uuid_toggle.clone())
-                        } else {
-                            Action::Deactivate(uuid_toggle.clone())
-                        };
-                        this.run(format!("vpn:{uuid_toggle}"), action, window, cx);
-                    })),
-            ),
-    );
+    .when(vpn.managed, |s| {
+        s.child(
+            div()
+                .id(SharedString::from(format!("vpn-sw-wrap-{}", vpn.uuid)))
+                .on_click(|_, _, cx| cx.stop_propagation())
+                .child(
+                    Switch::new(SharedString::from(format!("vpn-sw-{}", vpn.uuid)))
+                        .checked(up || busy)
+                        .disabled(pending)
+                        .on_click(cx.listener(move |this, on: &bool, window, cx| {
+                            let action = if *on {
+                                Action::Activate(uuid_toggle.clone())
+                            } else {
+                                Action::Deactivate(uuid_toggle.clone())
+                            };
+                            this.run(format!("vpn:{uuid_toggle}"), action, window, cx);
+                        })),
+                ),
+        )
+    });
 
     div()
         .v_flex()

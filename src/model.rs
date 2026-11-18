@@ -251,6 +251,7 @@ pub struct Vpn {
     pub user: Option<String>,
     pub ip4: Option<String>,
     pub autoconnect: bool,
+    pub managed: bool,
 }
 
 #[derive(Clone, Debug, Default)]

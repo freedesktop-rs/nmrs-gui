@@ -161,7 +161,7 @@ async fn load(nm: &NetworkManager) -> Result<State> {
         })
         .collect();
 
-    let vpns = nm
+    let mut vpns: Vec<Vpn> = nm
         .list_vpn_connections()
         .await
         .unwrap_or_default()
@@ -194,9 +194,35 @@ async fn load(nm: &NetworkManager) -> Result<State> {
                 user: vpn.user_name,
                 ip4,
                 autoconnect,
+                managed: true,
             }
         })
         .collect();
+
+    // Tunnels created outside NetworkManager (WireGuard, tun-mode TUN devices).
+    for dev in nm.list_devices().await.unwrap_or_default() {
+        let Some(kind) = tunnel_kind(&dev.device_type, dev.tun_mode) else {
+            continue;
+        };
+        let known = vpns
+            .iter()
+            .any(|v| v.interface.as_deref() == Some(dev.interface.as_str()));
+        if known {
+            continue;
+        }
+        vpns.push(Vpn {
+            uuid: format!("unmanaged:{}", dev.interface),
+            name: dev.interface.clone(),
+            kind,
+            state: link(&dev.state),
+            interface: Some(dev.interface),
+            gateway: None,
+            user: None,
+            ip4: dev.ip4_address,
+            autoconnect: false,
+            managed: false,
+        });
+    }
 
     let bluetooth = nm
         .list_bluetooth_devices()
@@ -753,6 +779,20 @@ fn ip_section(ip: &IpConfig, v6: bool) -> Result<HashMap<String, OwnedValue>> {
     Ok(section)
 }
 
+/// Classifies a device that NetworkManager has no VPN connection for.
+fn tunnel_kind(
+    device_type: &nmrs::DeviceType,
+    tun_mode: Option<nmrs::TunMode>,
+) -> Option<VpnKind> {
+    match device_type {
+        nmrs::DeviceType::WireGuard => Some(VpnKind::WireGuard),
+        nmrs::DeviceType::Tun if tun_mode == Some(nmrs::TunMode::Tun) => {
+            Some(VpnKind::Other("TUN".into()))
+        }
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -766,6 +806,25 @@ mod tests {
             ipv4: None,
             ipv6: None,
         }
+    }
+
+    #[test]
+    fn tunnel_kinds_are_classified() {
+        use nmrs::{DeviceType as D, TunMode};
+        assert!(matches!(
+            tunnel_kind(&D::WireGuard, None),
+            Some(VpnKind::WireGuard)
+        ));
+        assert!(matches!(
+            tunnel_kind(&D::Tun, Some(TunMode::Tun)),
+            Some(VpnKind::Other(k)) if k == "TUN"
+        ));
+        // TAP devices (libvirt vnet*) and unknown modes are not VPNs.
+        assert!(tunnel_kind(&D::Tun, Some(TunMode::Tap)).is_none());
+        assert!(tunnel_kind(&D::Tun, None).is_none());
+        // Generic devices can't be told apart from OpenVPN DCO, skipped.
+        assert!(tunnel_kind(&D::Other(14), None).is_none());
+        assert!(tunnel_kind(&D::Wifi, None).is_none());
     }
 
     #[test]

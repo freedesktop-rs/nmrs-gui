@@ -241,8 +241,8 @@ impl<const MENU: bool> ksni::Tray for NmTray<MENU> {
             items.push(MenuItem::Separator);
         }
 
-        if !state.vpns.is_empty() {
-            for vpn in &state.vpns {
+        if state.vpns.iter().any(|v| v.managed) {
+            for vpn in state.vpns.iter().filter(|v| v.managed) {
                 let up = vpn.state.is_up();
                 let action = if up {
                     Action::Deactivate(vpn.uuid.clone())
@@ -426,6 +426,7 @@ mod tests {
             user: None,
             ip4: None,
             autoconnect: false,
+            managed: true,
         });
         assert_eq!(
             icon(&Status::from_state(&state, None)),

@@ -69,6 +69,7 @@ pub struct Vpn {
     pub name: String,
     pub kind: String,
     pub state: String,
+    pub managed: bool,
     pub interface: Option<String>,
     pub ip4: Option<String>,
 }
@@ -146,6 +147,7 @@ impl Status {
                     name: v.name.clone(),
                     kind: v.kind.label().to_string(),
                     state: v.state.label().to_lowercase(),
+                    managed: v.managed,
                     interface: v.interface.clone(),
                     ip4: v.ip4.clone(),
                 })
@@ -212,6 +214,7 @@ mod tests {
             user: None,
             ip4: None,
             autoconnect: false,
+            managed: true,
         });
         state
     }
@@ -226,6 +229,29 @@ mod tests {
         assert_eq!(wifi.strength, 82);
         assert_eq!(status.vpn.len(), 1);
         assert_eq!(status.vpn[0].state, "connected");
+    }
+
+    #[::core::prelude::v1::test]
+    fn unmanaged_vpn_is_reported() {
+        let mut state = state();
+        state.vpns.push(VpnModel {
+            uuid: "unmanaged:tun0".into(),
+            name: "tun0".into(),
+            kind: VpnKind::OpenVpn,
+            state: LinkState::Connected,
+            interface: Some("tun0".into()),
+            gateway: None,
+            user: None,
+            ip4: None,
+            autoconnect: false,
+            managed: false,
+        });
+        let status = Status::from_state(&state, None);
+        assert_eq!(status.vpn.len(), 2);
+        assert!(status.vpn[0].managed);
+        assert!(!status.vpn[1].managed);
+        let json = serde_json::to_string(&status).unwrap();
+        assert!(json.contains("\"managed\":false"));
     }
 
     #[::core::prelude::v1::test]

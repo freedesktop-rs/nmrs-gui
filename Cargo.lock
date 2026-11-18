@@ -3941,9 +3941,9 @@ checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 
 [[package]]
 name = "nmrs"
-version = "3.5.12"
+version = "3.5.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d129142492227f972f64f712d93ad8b819caed2790a0b9668cbf0f150d1c6b18"
+checksum = "716bc7bc3fc6d0fbf543047535b3109a0526114524dc8d7e484a06e9e27b9fe2"
 dependencies = [
  "base64 0.23.1",
  "bitflags 2.13.2",
@@ -7103,9 +7103,9 @@ checksum = "3a3b425286980a367278453f3b6d28cdcb134b574e5a35824a6ff5eebad50bb6"
 
 [[package]]
 name = "uuid"
-version = "1.29.2"
+version = "1.29.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bed99139f7dac9b5cfe5f17be4d66dc7079a34dee1d74bcc77217119240e267c"
+checksum = "3c14b15dffa2f4bd712103e857140aa04a4f2ff6e955c77d7eb8e53ee02a3b64"
 dependencies = [
  "getrandom 0.4.2",
  "js-sys",

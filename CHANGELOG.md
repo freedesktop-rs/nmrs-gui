@@ -3,6 +3,8 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+### Added
+- `--status` reports tunnels not managed by NetworkManager (ex. WireGuard, `tun0`) as `"managed": false`. The VPN list shows them read-only ([#84](https://github.com/freedesktop-rs/nmrs-gui/pull/84))
 
 ## [2.2.0] - 2026-11-12
 ### Added

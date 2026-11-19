@@ -780,10 +780,7 @@ fn ip_section(ip: &IpConfig, v6: bool) -> Result<HashMap<String, OwnedValue>> {
 }
 
 /// Classifies a device that NetworkManager has no VPN connection for.
-fn tunnel_kind(
-    device_type: &nmrs::DeviceType,
-    tun_mode: Option<nmrs::TunMode>,
-) -> Option<VpnKind> {
+fn tunnel_kind(device_type: &nmrs::DeviceType, tun_mode: Option<nmrs::TunMode>) -> Option<VpnKind> {
     match device_type {
         nmrs::DeviceType::WireGuard => Some(VpnKind::WireGuard),
         nmrs::DeviceType::Tun if tun_mode == Some(nmrs::TunMode::Tun) => {

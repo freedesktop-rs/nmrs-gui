@@ -204,9 +204,12 @@ async fn load(nm: &NetworkManager) -> Result<State> {
         let Some(kind) = tunnel_kind(&dev.device_type, dev.tun_mode) else {
             continue;
         };
-        let known = vpns
-            .iter()
-            .any(|v| v.interface.as_deref() == Some(dev.interface.as_str()));
+        // Plugin VPNs report the parent link as their interface, so their
+        // tun device is matched by address instead.
+        let known = vpns.iter().any(|v| {
+            v.interface.as_deref() == Some(dev.interface.as_str())
+                || (dev.ip4_address.is_some() && v.ip4 == dev.ip4_address)
+        });
         if known {
             continue;
         }
@@ -214,7 +217,7 @@ async fn load(nm: &NetworkManager) -> Result<State> {
             uuid: format!("unmanaged:{}", dev.interface),
             name: dev.interface.clone(),
             kind,
-            state: link(&dev.state),
+            state: tunnel_state(&dev.state),
             interface: Some(dev.interface),
             gateway: None,
             user: None,
@@ -779,6 +782,14 @@ fn ip_section(ip: &IpConfig, v6: bool) -> Result<HashMap<String, OwnedValue>> {
     Ok(section)
 }
 
+/// A tunnel NetworkManager doesn't manage is up whenever its device exists.
+fn tunnel_state(state: &DeviceState) -> LinkState {
+    match state {
+        DeviceState::Unmanaged => LinkState::Connected,
+        state => link(state),
+    }
+}
+
 /// Classifies a device that NetworkManager has no VPN connection for.
 fn tunnel_kind(device_type: &nmrs::DeviceType, tun_mode: Option<nmrs::TunMode>) -> Option<VpnKind> {
     match device_type {
@@ -803,6 +814,16 @@ mod tests {
             ipv4: None,
             ipv6: None,
         }
+    }
+
+    #[test]
+    fn unmanaged_tunnel_is_connected() {
+        assert_eq!(tunnel_state(&DeviceState::Unmanaged), LinkState::Connected);
+        assert_eq!(tunnel_state(&DeviceState::Activated), LinkState::Connected);
+        assert_eq!(
+            tunnel_state(&DeviceState::Disconnected),
+            LinkState::Disconnected
+        );
     }
 
     #[test]

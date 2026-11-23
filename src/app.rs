@@ -16,7 +16,7 @@ use crate::compositor::Compositor;
 use crate::config::{Config, LayoutMode, Page, Store};
 use crate::model::{Action, Reachability, State};
 use crate::theme;
-use crate::ui::{kit, network, profiles, vpn, wifi};
+use crate::ui::{kit, network, profiles, secrets, vpn, wifi};
 
 actions!(
     nmrs,
@@ -63,6 +63,7 @@ pub struct NmApp {
     pub profiles: profiles::ProfilesUi,
     pub network: network::NetworkUi,
     pub appearance: crate::ui::appearance::AppearanceUi,
+    pub secrets: secrets::SecretsUi,
     pub subscriptions: Vec<Subscription>,
     pub app_id: String,
     pub compositor: Option<Compositor>,
@@ -92,6 +93,7 @@ impl NmApp {
             profiles: profiles::ProfilesUi::new(window, cx),
             network: network::NetworkUi::new(window, cx),
             appearance: crate::ui::appearance::AppearanceUi::new(&config, window, cx),
+            secrets: secrets::SecretsUi::default(),
             backend,
             store,
             config,
@@ -250,6 +252,8 @@ impl NmApp {
         }
         self.confirming = None;
         let title = action.describe();
+        let mark = self.secrets.mark();
+        let target = action.clone();
         let fut = self.backend.execute(action);
         cx.notify();
         cx.spawn_in(window, async move |this, cx| {
@@ -258,10 +262,14 @@ impl NmApp {
                 this.pending.remove(&key);
                 match result {
                     Ok(()) => then(this, window, cx),
+                    Err(_) if this.secrets.cancelled_since(mark, &target) => {}
                     Err(err) => window.push_notification(
                         Notification::error(format!("{err:#}")).title(title),
                         cx,
                     ),
+                }
+                if this.pending.is_empty() {
+                    this.secrets.settle();
                 }
                 this.refresh(cx);
                 cx.notify();
@@ -358,7 +366,14 @@ impl NmApp {
         }
     }
 
+    pub fn refocus(&self, window: &mut Window, cx: &mut App) {
+        window.focus(&self.focus, cx);
+    }
+
     fn dismiss(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if self.confirming.is_none() && secrets::dismiss(self, window, cx) {
+            return;
+        }
         let dismissed = self.confirming.take().is_some()
             || wifi::dismiss(self, window, cx)
             || vpn::dismiss(self, cx);
@@ -588,6 +603,16 @@ impl Render for NmApp {
         let wide = self.page == Page::Profiles && !crate::ui::profiles::single_pane(self, window);
         let pad = if compact { px(16.) } else { px(28.) };
         let body = self.render_body(window, cx);
+        let body = match secrets::render(self, cx) {
+            Some(prompt) => div()
+                .v_flex()
+                .gap_4()
+                .when(wide, |s| s.size_full().p_4())
+                .child(prompt)
+                .child(div().when(wide, |s| s.flex_1().min_h_0()).child(body))
+                .into_any_element(),
+            None => body,
+        };
         let theme = cx.theme();
 
         let content = if wide {

@@ -4,5 +4,6 @@ pub mod ethernet;
 pub mod kit;
 pub mod network;
 pub mod profiles;
+pub mod secrets;
 pub mod vpn;
 pub mod wifi;

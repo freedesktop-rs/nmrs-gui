@@ -22,7 +22,7 @@ use futures::channel::mpsc;
 use gpui_kit::*;
 
 use crate::app::NmApp;
-use crate::backend::Backend;
+use crate::backend::{Backend, SecretEvent};
 use crate::config::{LayoutMode, Page, Store};
 use crate::ipc::Command;
 
@@ -127,13 +127,39 @@ impl Launcher {
         }
     }
 
+    fn app(&self) -> Option<Entity<NmApp>> {
+        self.app.borrow().as_ref().and_then(|app| app.upgrade())
+    }
+
+    fn secret(&self, event: SecretEvent, cx: &mut App) {
+        if matches!(event, SecretEvent::Request(..)) {
+            let shown = self.handle(Command::Show(None), cx);
+            if shown != "ok" {
+                log::warn!("cannot show secret prompt: {shown}");
+                return;
+            }
+        }
+        let (Some(app), Some(handle)) = (self.app(), self.window(cx)) else {
+            return;
+        };
+        let _ = handle.update(cx, |_, window, cx| {
+            app.update(cx, |app, cx| match event {
+                SecretEvent::Request(prompt, reply) => {
+                    ui::secrets::push(app, prompt, reply, window, cx)
+                }
+                SecretEvent::Cancelled { path, setting } => {
+                    ui::secrets::cancelled(app, &path, &setting, window, cx)
+                }
+            })
+        });
+    }
+
     fn page(&self, cx: &App) -> Option<Page> {
-        let app = self.app.borrow().as_ref().and_then(|app| app.upgrade())?;
-        Some(app.read(cx).page)
+        Some(self.app()?.read(cx).page)
     }
 
     fn raise(&self, handle: AnyWindowHandle, page: Option<Page>, cx: &mut App) -> String {
-        let app = self.app.borrow().as_ref().and_then(|app| app.upgrade());
+        let app = self.app();
         let result = handle.update(cx, |_, window, cx| {
             if let (Some(page), Some(app)) = (page, app) {
                 app.update(cx, |app, cx| app.go(page, window, cx));
@@ -248,6 +274,7 @@ fn main() -> anyhow::Result<()> {
     let socket = ipc::socket_path(&args.app_id);
     let requests = ipc::serve(ipc::bind(&args.app_id)?);
     let backend = Backend::start(args.demo)?;
+    let mut secrets = backend.secrets();
     let (tray_tx, tray_rx) = mpsc::unbounded();
     let resident = Arc::new(AtomicBool::new(args.tray));
     if args.tray {
@@ -290,6 +317,14 @@ fn main() -> anyhow::Result<()> {
             cx.on_window_closed(move |cx, _| {
                 if !closed.hiding.replace(false) && !resident.load(Ordering::Relaxed) {
                     cx.quit();
+                }
+            })
+            .detach();
+
+            let prompter = launcher.clone();
+            cx.spawn(async move |cx| {
+                while let Some(event) = secrets.next().await {
+                    cx.update(|cx| prompter.secret(event, cx));
                 }
             })
             .detach();

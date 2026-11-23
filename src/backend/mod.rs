@@ -1,3 +1,4 @@
+mod agent;
 mod demo;
 mod nm;
 
@@ -8,13 +9,19 @@ use anyhow::{Result, anyhow};
 use futures::channel::{mpsc, oneshot};
 use futures::future::BoxFuture;
 
-use crate::model::{Action, ProfileDetail, State};
+use crate::model::{Action, ProfileDetail, SecretAnswer, SecretPrompt, State};
+
+pub enum SecretEvent {
+    Request(SecretPrompt, oneshot::Sender<SecretAnswer>),
+    Cancelled { path: String, setting: String },
+}
 
 pub trait Service: Send + Sync + 'static {
     fn state(&self) -> BoxFuture<'static, Result<State>>;
     fn profile(&self, uuid: String) -> BoxFuture<'static, Result<ProfileDetail>>;
     fn execute(&self, action: Action) -> BoxFuture<'static, Result<()>>;
     fn watch(&self, tx: mpsc::UnboundedSender<()>) -> BoxFuture<'static, Result<()>>;
+    fn secrets(&self, tx: mpsc::UnboundedSender<SecretEvent>) -> BoxFuture<'static, Result<()>>;
 }
 
 #[derive(Clone)]
@@ -88,6 +95,17 @@ impl Backend {
         self.runtime.spawn(async move {
             if let Err(err) = fut.await {
                 log::warn!("event stream ended: {err}");
+            }
+        });
+        rx
+    }
+
+    pub fn secrets(&self) -> mpsc::UnboundedReceiver<SecretEvent> {
+        let (tx, rx) = mpsc::unbounded();
+        let fut = self.service.secrets(tx);
+        self.runtime.spawn(async move {
+            if let Err(err) = fut.await {
+                log::warn!("secret agent stopped: {err:#}");
             }
         });
         rx

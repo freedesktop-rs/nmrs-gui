@@ -18,7 +18,7 @@ use nmrs::{
 };
 use tokio::sync::OnceCell;
 
-use super::Service;
+use super::{SecretEvent, Service};
 use crate::model::*;
 
 pub struct Nm {
@@ -74,6 +74,10 @@ impl Service for Nm {
             }
             Ok(())
         })
+    }
+
+    fn secrets(&self, tx: mpsc::UnboundedSender<SecretEvent>) -> BoxFuture<'static, Result<()>> {
+        Box::pin(super::agent::run(tx))
     }
 }
 

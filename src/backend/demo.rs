@@ -2,15 +2,16 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::{Result, anyhow};
-use futures::channel::mpsc;
+use futures::channel::{mpsc, oneshot};
 use futures::future::BoxFuture;
 
-use super::Service;
+use super::{SecretEvent, Service};
 use crate::model::*;
 
 pub struct Demo {
     state: Arc<Mutex<State>>,
     notify: Arc<Mutex<Vec<mpsc::UnboundedSender<()>>>>,
+    secrets: Arc<Mutex<Option<mpsc::UnboundedSender<SecretEvent>>>>,
 }
 
 impl Demo {
@@ -18,6 +19,7 @@ impl Demo {
         Self {
             state: Arc::new(Mutex::new(seed())),
             notify: Arc::default(),
+            secrets: Arc::default(),
         }
     }
 }
@@ -45,7 +47,16 @@ impl Service for Demo {
     fn execute(&self, action: Action) -> BoxFuture<'static, Result<()>> {
         let state = self.state.clone();
         let notify = self.notify.clone();
+        let prompt = demo_prompt(&action);
+        let secrets = self.secrets.lock().ok().and_then(|tx| tx.clone());
         Box::pin(async move {
+            if let (Some(prompt), Some(secrets)) = (prompt, secrets) {
+                let (tx, rx) = oneshot::channel();
+                secrets
+                    .unbounded_send(SecretEvent::Request(prompt, tx))
+                    .map_err(|_| anyhow!("secret agent stopped"))?;
+                rx.await.map_err(|_| anyhow!("Secrets were not provided"))?;
+            }
             tokio::time::sleep(Duration::from_millis(450)).await;
             {
                 let mut state = state.lock().map_err(|_| anyhow!("poisoned"))?;
@@ -64,6 +75,54 @@ impl Service for Demo {
         }
         Box::pin(async { Ok(()) })
     }
+
+    fn secrets(&self, tx: mpsc::UnboundedSender<SecretEvent>) -> BoxFuture<'static, Result<()>> {
+        if let Ok(mut secrets) = self.secrets.lock() {
+            *secrets = Some(tx);
+        }
+        Box::pin(async { Ok(()) })
+    }
+}
+
+fn demo_prompt(action: &Action) -> Option<SecretPrompt> {
+    let Action::Activate(uuid) = action else {
+        return None;
+    };
+    let (connection, setting, kind, keys) = match uuid.as_str() {
+        "a3" => (
+            "Studio",
+            "802-11-wireless-security",
+            SecretKind::Wifi {
+                ssid: "Studio".into(),
+            },
+            &["psk"][..],
+        ),
+        "v2" => (
+            "Work",
+            "vpn",
+            SecretKind::Vpn {
+                message: Some("Enter your password and one-time code.".into()),
+            },
+            &["password", "challenge-response"][..],
+        ),
+        _ => return None,
+    };
+    let fields = keys
+        .iter()
+        .map(|key| SecretField {
+            key: key.to_string(),
+            masked: true,
+            value: None,
+        })
+        .collect();
+    Some(SecretPrompt {
+        uuid: uuid.clone(),
+        connection: connection.into(),
+        path: format!("/org/freedesktop/NetworkManager/Settings/{uuid}"),
+        setting: setting.into(),
+        kind,
+        fields,
+    })
 }
 
 fn apply(state: &mut State, action: Action) -> Result<()> {

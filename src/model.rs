@@ -524,6 +524,32 @@ fn on_off(on: bool) -> &'static str {
     if on { "on" } else { "off" }
 }
 
+#[derive(Clone, Debug)]
+pub struct SecretPrompt {
+    pub uuid: String,
+    pub connection: String,
+    pub path: String,
+    pub setting: String,
+    pub kind: SecretKind,
+    pub fields: Vec<SecretField>,
+}
+
+#[derive(Clone, Debug)]
+pub enum SecretKind {
+    Wifi { ssid: String },
+    Eap { identity: Option<String> },
+    Vpn { message: Option<String> },
+}
+
+#[derive(Clone, Debug)]
+pub struct SecretField {
+    pub key: String,
+    pub masked: bool,
+    pub value: Option<String>,
+}
+
+pub type SecretAnswer = std::collections::HashMap<String, String>;
+
 #[cfg(test)]
 mod tests {
     use super::*;

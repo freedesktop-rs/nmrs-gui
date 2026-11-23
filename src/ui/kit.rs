@@ -188,7 +188,7 @@ pub fn kv_grid(items: Vec<(&'static str, String)>, cx: &App) -> Div {
         }))
 }
 
-pub fn field(label: &'static str, input: &Entity<InputState>, cx: &App) -> Div {
+pub fn field(label: impl Into<SharedString>, input: &Entity<InputState>, cx: &App) -> Div {
     let theme = cx.theme();
     div()
         .v_flex()
@@ -198,12 +198,12 @@ pub fn field(label: &'static str, input: &Entity<InputState>, cx: &App) -> Div {
             div()
                 .text_xs()
                 .text_color(theme.muted_foreground)
-                .child(label),
+                .child(label.into()),
         )
         .child(Input::new(input).small())
 }
 
-pub fn secret_field(label: &'static str, input: &Entity<InputState>, cx: &App) -> Div {
+pub fn secret_field(label: impl Into<SharedString>, input: &Entity<InputState>, cx: &App) -> Div {
     let theme = cx.theme();
     div()
         .v_flex()
@@ -213,7 +213,7 @@ pub fn secret_field(label: &'static str, input: &Entity<InputState>, cx: &App) -
             div()
                 .text_xs()
                 .text_color(theme.muted_foreground)
-                .child(label),
+                .child(label.into()),
         )
         .child(Input::new(input).small().mask_toggle())
 }

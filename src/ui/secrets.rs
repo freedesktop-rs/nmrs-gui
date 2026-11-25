@@ -157,14 +157,14 @@ fn submit(app: &mut NmApp, window: &mut Window, cx: &mut Context<NmApp>) {
     let Some(pending) = app.secrets.queue.front() else {
         return;
     };
-    if pending.values(cx).next().is_some_and(|(_, v)| v.is_empty()) {
-        let input = pending.inputs[0].clone();
+    let empty = pending.values(cx).position(|(_, v)| v.is_empty());
+    if let Some(index) = empty {
+        let input = pending.inputs[index].clone();
         input.update(cx, |state, cx| state.focus(window, cx));
         return;
     }
     let answer: SecretAnswer = pending
         .values(cx)
-        .filter(|(_, v)| !v.is_empty())
         .map(|(f, v)| (f.key.clone(), v))
         .collect();
     if let Some(pending) = app.secrets.queue.pop_front() {

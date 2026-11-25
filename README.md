@@ -247,6 +247,7 @@ close_on_escape = true
 confirm_forget = true
 tray_click = "menu"        # menu, window; what left click on the tray icon does
 tray_icon = "logo"         # logo, status; status needs an icon theme in your bar
+secret_agent = true        # prompt for Wi-Fi/VPN secrets; turn off if another agent handles them
 ```
 
 `layout.pages` controls both which pages appear and their order.

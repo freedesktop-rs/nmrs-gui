@@ -262,6 +262,7 @@ pub struct Behavior {
     pub confirm_forget: bool,
     pub tray_click: TrayClick,
     pub tray_icon: TrayIcon,
+    pub secret_agent: bool,
 }
 
 impl Default for Behavior {
@@ -272,6 +273,7 @@ impl Default for Behavior {
             confirm_forget: true,
             tray_click: TrayClick::Menu,
             tray_icon: TrayIcon::Logo,
+            secret_agent: true,
         }
     }
 }

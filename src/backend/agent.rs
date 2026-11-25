@@ -50,7 +50,10 @@ pub async fn run(tx: mpsc::UnboundedSender<SecretEvent>) -> Result<()> {
         .await?
         .fuse();
 
-    let (mut handle, mut requests) = retry(&mut owners, register).await?;
+    let Some((mut handle, mut requests)) = retry(&mut owners, register).await? else {
+        log::info!("another nmrs-gui instance is the secret agent; running without one");
+        return Ok(());
+    };
     loop {
         let event = futures::select_biased! {
             req = requests.next() => Event::Request(req.map(Box::new)),
@@ -77,12 +80,16 @@ pub async fn run(tx: mpsc::UnboundedSender<SecretEvent>) -> Result<()> {
     }
 }
 
-async fn register() -> nmrs::Result<(SecretAgentHandle, mpsc::Receiver<SecretRequest>)> {
-    SecretAgent::builder()
+async fn register() -> nmrs::Result<Option<(SecretAgentHandle, mpsc::Receiver<SecretRequest>)>> {
+    let result = SecretAgent::builder()
         .with_identifier(IDENTIFIER)
         .with_capabilities(SecretAgentCapabilities::VPN_HINTS)
         .register()
-        .await
+        .await;
+    match result {
+        Err(ConnectionError::AgentAlreadyRegistered) => Ok(None),
+        result => result.map(Some),
+    }
 }
 
 async fn reregister(handle: &SecretAgentHandle) -> nmrs::Result<()> {
@@ -170,7 +177,7 @@ fn dispatch(req: SecretRequest, tx: &mpsc::UnboundedSender<SecretEvent>) {
             Either::Right(_) => {
                 let setting = setting.into();
                 let _ = tx.unbounded_send(SecretEvent::Cancelled { path, setting });
-                return;
+                responder.no_secrets().await
             }
         };
         if let Err(err) = result {

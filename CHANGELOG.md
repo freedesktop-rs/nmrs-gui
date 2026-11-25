@@ -4,7 +4,7 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
 ### Added
-- nmrs registers as a NetworkManager secret agent. Wi-Fi/802.1X/VPN password/one-time-code requests open an inline prompt instead of failing with `NoSecrets`, and the agent re-registers when NetworkManager restarts ([#51](https://github.com/freedesktop-rs/nmrs-gui/issues/51))
+- nmrs-gui registers as a NetworkManager secret agent. Wi-Fi/802.1X/VPN password/one-time-code requests open an inline prompt instead of failing with `NoSecrets`, and the agent re-registers when NetworkManager restarts; `behavior.secret_agent = false` leaves secrets to another agent ([#99](https://github.com/freedesktop-rs/nmrs-gui/pull/99))
 - `--status` reports tunnels not managed by NetworkManager (ex. WireGuard, `tun0`) as `"managed": false`. The VPN list shows them read-only ([#87](https://github.com/freedesktop-rs/nmrs-gui/pull/87))
 
 ## [2.2.0] - 2026-11-12

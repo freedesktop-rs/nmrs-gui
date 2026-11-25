@@ -274,14 +274,14 @@ fn main() -> anyhow::Result<()> {
     let socket = ipc::socket_path(&args.app_id);
     let requests = ipc::serve(ipc::bind(&args.app_id)?);
     let backend = Backend::start(args.demo)?;
-    let mut secrets = backend.secrets();
+    let behavior = Store::new(args.config.clone())
+        .load()
+        .map(|c| c.behavior)
+        .unwrap_or_default();
+    let secrets = behavior.secret_agent.then(|| backend.secrets());
     let (tray_tx, tray_rx) = mpsc::unbounded();
     let resident = Arc::new(AtomicBool::new(args.tray));
     if args.tray {
-        let behavior = Store::new(args.config.clone())
-            .load()
-            .map(|c| c.behavior)
-            .unwrap_or_default();
         tray::spawn(backend.clone(), tray_tx, &behavior, resident.clone())?;
     }
     let launcher = Rc::new(Launcher {
@@ -321,13 +321,15 @@ fn main() -> anyhow::Result<()> {
             })
             .detach();
 
-            let prompter = launcher.clone();
-            cx.spawn(async move |cx| {
-                while let Some(event) = secrets.next().await {
-                    cx.update(|cx| prompter.secret(event, cx));
-                }
-            })
-            .detach();
+            if let Some(mut secrets) = secrets {
+                let prompter = launcher.clone();
+                cx.spawn(async move |cx| {
+                    while let Some(event) = secrets.next().await {
+                        cx.update(|cx| prompter.secret(event, cx));
+                    }
+                })
+                .detach();
+            }
 
             let served = launcher.clone();
             cx.spawn(async move |cx| {

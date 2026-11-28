@@ -64,3 +64,9 @@ jobs:
 
       - name: Test
         run: cargo test
+
+  packages:
+    name: Packages
+    uses: ./.github/workflows/build.yml
+    with:
+      profile: dev

@@ -1,0 +1,53 @@
+name: nmrs-gui
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+release: 1
+section: net
+priority: optional
+maintainer: Akrm Al-Hakimi <akrm@cachebag.sh>
+description: NetworkManager client built on nmrs and gpui
+homepage: https://github.com/freedesktop-rs/nmrs-gui
+license: MIT
+
+contents:
+  - src: dist/nmrs-gui
+    dst: /usr/bin/nmrs-gui
+    file_info:
+      mode: 0755
+  - src: /usr/bin/nmrs-gui
+    dst: /usr/bin/nmrs
+    type: symlink
+  - src: nmrs.desktop
+    dst: /usr/share/applications/nmrs.desktop
+  - src: nmrs-tray.service
+    dst: /usr/lib/systemd/user/nmrs-tray.service
+  - src: assets/nmrs.svg
+    dst: /usr/share/icons/hicolor/scalable/apps/nmrs.svg
+  - src: LICENSE-MIT
+    dst: /usr/share/licenses/nmrs-gui/LICENSE
+
+# The binary links only xcb and xkbcommon. Wayland, Vulkan, fontconfig and
+# freetype are loaded at runtime, so every dependency is listed by hand.
+overrides:
+  deb:
+    depends:
+      - network-manager
+      - libfontconfig1
+      - libfreetype6
+      - libvulkan1
+      - libwayland-client0
+      - libxcb1
+      - libxkbcommon0
+      - libxkbcommon-x11-0
+  rpm:
+    # Sonames instead of package names, which differ between Fedora and openSUSE.
+    depends:
+      - NetworkManager
+      - libfontconfig.so.1()(64bit)
+      - libfreetype.so.6()(64bit)
+      - libvulkan.so.1()(64bit)
+      - libwayland-client.so.0()(64bit)
+      - libxcb.so.1()(64bit)
+      - libxkbcommon.so.0()(64bit)
+      - libxkbcommon-x11.so.0()(64bit)

@@ -104,6 +104,18 @@ The compact layout, in a few of the built-in themes. Each one is a `config.toml`
 paru -S nmrs
 ```
 
+### Debian, Ubuntu, Fedora and openSUSE
+
+Each [release](https://github.com/freedesktop-rs/nmrs-gui/releases/latest) has `.deb` and `.rpm` packages for x86_64 and aarch64. Download the one for your system and install it:
+
+```bash
+sudo apt install ./nmrs-gui_*.deb
+sudo dnf install ./nmrs-gui-*.rpm
+sudo zypper install --allow-unsigned-rpm ./nmrs-gui-*.rpm
+```
+
+The same release has plain `nmrs-gui-x86_64-linux` and `nmrs-gui-aarch64-linux` binaries. All of them need glibc 2.35 or newer.
+
 ### From crates.io
 
 ```bash
@@ -152,7 +164,7 @@ One instance runs per app id. Launching `nmrs-gui` again raises the existing win
 
 In this mode closing the window or pressing `Esc` hides it to the tray; `Ctrl+Q` or the menu's Quit exits. Start it from your compositor's autostart, with the same `--app-id` your toggle keybinding uses.
 
-The AUR and Nix packages also ship a systemd user unit, `nmrs-tray.service`, which runs `nmrs-gui --tray` with the graphical session. It is not enabled by default:
+The AUR, Nix, `.deb` and `.rpm` packages also ship a systemd user unit, `nmrs-tray.service`, which runs `nmrs-gui --tray` with the graphical session. It is not enabled by default:
 
 ```sh
 systemctl --user enable --now nmrs-tray

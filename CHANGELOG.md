@@ -4,6 +4,7 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Releases ship `.deb` and `.rpm` packages and an aarch64 binary next to the x86_64 one. They are built on Ubuntu 22.04, so they run on any distro with glibc 2.35 or newer ([#102](https://github.com/freedesktop-rs/nmrs-gui/pull/102))
 - nmrs-gui registers as a NetworkManager secret agent. Wi-Fi/802.1X/VPN password/one-time-code requests open an inline prompt instead of failing with `NoSecrets`, and the agent re-registers when NetworkManager restarts; `behavior.secret_agent = false` leaves secrets to another agent ([#99](https://github.com/freedesktop-rs/nmrs-gui/pull/99))
 - `--status` reports tunnels not managed by NetworkManager (ex. WireGuard, `tun0`) as `"managed": false`. The VPN list shows them read-only ([#87](https://github.com/freedesktop-rs/nmrs-gui/pull/87))
 

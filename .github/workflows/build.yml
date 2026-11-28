@@ -1,0 +1,114 @@
+name: Build packages
+
+on:
+  workflow_call:
+    inputs:
+      profile:
+        description: Cargo profile to build with, "release" or "dev"
+        type: string
+        default: release
+      upload:
+        description: Upload the binaries and packages as workflow artifacts
+        type: boolean
+        default: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+
+jobs:
+  build:
+    name: Build (${{ matrix.arch }})
+    # Ubuntu 22.04 sets the glibc baseline (2.35) the binaries run on.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: x86_64
+            pkg_arch: amd64
+          - os: ubuntu-22.04-arm
+            arch: aarch64
+            pkg_arch: arm64
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install system dependencies
+        run: |
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            pkg-config \
+            libfontconfig-dev \
+            libfreetype-dev \
+            libwayland-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            libx11-xcb-dev \
+            libvulkan-dev \
+            nfpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ inputs.profile }}
+          save-if: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
+
+      - name: Build binary
+        run: cargo build --locked --profile ${{ inputs.profile }}
+
+      - name: Stage binary
+        run: |
+          mkdir -p dist out
+          cp target/${{ inputs.profile == 'dev' && 'debug' || 'release' }}/nmrs-gui dist/nmrs-gui
+          cp dist/nmrs-gui out/nmrs-gui-${{ matrix.arch }}-linux
+
+      - name: Build .deb and .rpm
+        env:
+          ARCH: ${{ matrix.pkg_arch }}
+        run: |
+          export VERSION="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')"
+          nfpm package --config packaging/nfpm.yaml --packager deb --target out/
+          nfpm package --config packaging/nfpm.yaml --packager rpm --target out/
+          ls -l out/
+
+      - name: Install the .deb on Ubuntu 22.04
+        run: |
+          docker run --rm -v "$PWD/out:/out:ro" ubuntu:22.04 sh -euc '
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /out/*.deb
+            nmrs-gui --version
+            nmrs --version
+          '
+
+      - name: Install the .deb on Debian 12
+        run: |
+          docker run --rm -v "$PWD/out:/out:ro" debian:12 sh -euc '
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends /out/*.deb
+            nmrs-gui --version
+          '
+
+      - name: Install the .rpm on Fedora
+        run: |
+          docker run --rm -v "$PWD/out:/out:ro" fedora:latest sh -euc '
+            dnf install -y --setopt=install_weak_deps=False /out/*.rpm
+            nmrs-gui --version
+          '
+
+      - name: Install the .rpm on openSUSE Tumbleweed
+        run: |
+          docker run --rm -v "$PWD/out:/out:ro" opensuse/tumbleweed sh -euc '
+            zypper --non-interactive --no-gpg-checks install --no-recommends /out/*.rpm
+            nmrs-gui --version
+          '
+
+      - uses: actions/upload-artifact@v7
+        if: inputs.upload
+        with:
+          name: nmrs-gui-${{ matrix.arch }}-linux
+          path: out/*

@@ -3,9 +3,12 @@
 All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 ## [Unreleased]
+
+## [2.3.0] - 2026-11-28
 ### Added
 - nmrs-gui registers as a NetworkManager secret agent. Wi-Fi/802.1X/VPN password/one-time-code requests open an inline prompt instead of failing with `NoSecrets`, and the agent re-registers when NetworkManager restarts; `behavior.secret_agent = false` leaves secrets to another agent ([#99](https://github.com/freedesktop-rs/nmrs-gui/pull/99))
 - `--status` reports tunnels not managed by NetworkManager (ex. WireGuard, `tun0`) as `"managed": false`. The VPN list shows them read-only ([#87](https://github.com/freedesktop-rs/nmrs-gui/pull/87))
+- `nmrs-tray.service`, a systemd user unit that starts the tray with the graphical session, installed by the AUR and Nix packages ([#92](https://github.com/freedesktop-rs/nmrs-gui/pull/92))
 
 ## [2.2.0] - 2026-11-12
 ### Added
@@ -146,7 +149,8 @@ All notable changes to the `nmrs-gui` crate will be documented in this file.
 
 [1.5.0]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.1.0...v1.5.0
 [1.5.1]: https://github.com/networkmanager-rs/nmrs-gui/compare/v1.5.0...v1.5.1
-[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.1...v2.1.0
 [2.0.1]: https://github.com/freedesktop-rs/nmrs-gui/compare/v2.0.0...v2.0.1
